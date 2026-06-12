@@ -520,6 +520,18 @@ function save(){fbSave();}
 // ════════════════════════════════════════════
 let syncT=null;
 function setSS(t,txt){}
+
+function showTab(t){
+  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('pg-'+t).classList.add('on');
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='ranking')rRnk();
+  if(t==='palpites')rAll();
+  if(t==='palpitar')renderPalpitar();
+  if(t==='bracket')renderBracket();
+  if(t==='jogos')renderJogos();
+}
 window.showTab=showTab;
 
 function updSt(){
