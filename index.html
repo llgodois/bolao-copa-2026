@@ -485,14 +485,23 @@ async function initFirebase(){
     setSS('spin','Conectando...');
     onValue(dbRef,(snap)=>{
       const data=snap.val();
-      if(data&&data.jogos&&data.jogos.length>0){
-        // Dados existem no Firebase — carrega sem sobrescrever
+      if(data&&data.palpites&&data.palpites.length>0){
+        // Tem palpites — carrega tudo sem tocar no Firebase
         ST={...ST,...data};
-      }else if(!data||!data.jogos||data.jogos.length===0){
-        // Banco realmente vazio — inicializa só se não tiver palpites
-        if(!data||!data.palpites||data.palpites.length===0){
+        // Garante que jogos existem localmente mas SEM salvar no Firebase
+        if(!ST.jogos||ST.jogos.length===0){
           ST.jogos=COPA.map(j=>({...j,res:{g1:'',g2:''},live:false}));
-          fbSave();
+        }
+      }else if(!data){
+        // Banco completamente vazio — inicializa jogos localmente apenas
+        ST.jogos=COPA.map(j=>({...j,res:{g1:'',g2:''},live:false}));
+        ST.palpites=[];
+        // NÃO salva no Firebase automaticamente
+      }else{
+        // Tem dados mas sem palpites
+        ST={...ST,...data};
+        if(!ST.jogos||ST.jogos.length===0){
+          ST.jogos=COPA.map(j=>({...j,res:{g1:'',g2:''},live:false}));
         }
       }
       updSt();renderJogos();renderBracket();
@@ -693,7 +702,7 @@ window.showTab=showTab;
 function updSt(){
   document.getElementById('sj').textContent=ST.jogos.length;
   document.getElementById('sp').textContent=[...new Set(ST.palpites.map(p=>p.nome))].length;
-  document.getElementById('se').textContent=ST.jogos.filter(j=>j.res&&j.res.g1!==''&&!j.live).length;
+  document.getElementById('se').textContent=ST.jogos.filter(j=>j.res&&j.res.g1!==''&&j.res.g1!==null&&j.res.g2!==''&&j.res.g2!==null&&!j.live).length;
   document.getElementById('sg').textContent=ST.palpites.length;
   document.getElementById('hdr-nome').textContent=ST.nome;
   document.title=ST.nome+' 🏆';
