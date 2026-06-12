@@ -485,11 +485,15 @@ async function initFirebase(){
     setSS('spin','Conectando...');
     onValue(dbRef,(snap)=>{
       const data=snap.val();
-      if(data){
+      if(data&&data.jogos&&data.jogos.length>0){
+        // Dados existem no Firebase — carrega sem sobrescrever
         ST={...ST,...data};
-        if(!ST.jogos||ST.jogos.length===0){ST.jogos=COPA.map(j=>({...j,res:{g1:'',g2:''},live:false}));fbSave();}
-      }else{
-        ST.jogos=COPA.map(j=>({...j,res:{g1:'',g2:''},live:false}));fbSave();
+      }else if(!data||!data.jogos||data.jogos.length===0){
+        // Banco realmente vazio — inicializa só se não tiver palpites
+        if(!data||!data.palpites||data.palpites.length===0){
+          ST.jogos=COPA.map(j=>({...j,res:{g1:'',g2:''},live:false}));
+          fbSave();
+        }
       }
       updSt();renderJogos();renderBracket();
       if(document.getElementById('pg-palpitar').classList.contains('on'))renderPalpitar();
