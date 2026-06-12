@@ -589,14 +589,17 @@ function parseFmtB(raw){
   return arr.map(g=>{
     const s1 = String(g.home_score ?? '');
     const s2 = String(g.away_score ?? '');
-    const temPlacar = s1 !== '' && s1 !== 'null' && s2 !== '' && s2 !== 'null';
+    const isLive = (g.time_elapsed||'').toLowerCase() === 'live';
+    const isFinished = String(g.finished).toUpperCase() === 'TRUE';
+    // Só considera placar válido se o jogo está ao vivo ou encerrado
+    const temPlacar = (isLive || isFinished) && s1 !== '' && s1 !== 'null' && s2 !== '' && s2 !== 'null';
     return {
       t1: g.home_team_name_en || '',
       t2: g.away_team_name_en || '',
       g1: temPlacar ? parseInt(s1) : null,
       g2: temPlacar ? parseInt(s2) : null,
-      live: (g.time_elapsed||'').toLowerCase() === 'live',
-      finished: String(g.finished).toUpperCase() === 'TRUE',
+      live: isLive,
+      finished: isFinished,
     };
   }).filter(g=>g.t1&&g.t2);
 }
