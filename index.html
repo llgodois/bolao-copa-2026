@@ -191,8 +191,6 @@ select option{background:#1a2235;}
     </div>
   </div>
   <div class="hdr-r">
-    <div class="pill"><div class="dot" id="sdot"></div><span id="stxt">Aguardando...</span></div>
-    <button class="btn btn-o btn-sm" onclick="syncAPIWin()">🔄 Sync</button>
     <button class="btn btn-y btn-sm" onclick="showTab('ranking')">🏅 Ranking</button>
     <button class="btn btn-o btn-sm" onclick="openAdmin()">⚙️ Admin</button>
   </div>
@@ -521,177 +519,7 @@ function save(){fbSave();}
 // API SYNC
 // ════════════════════════════════════════════
 let syncT=null;
-async function syncAPI(manual=false){
-  setSS('spin','Sincronizando...');
-
-  // Tenta múltiplas fontes em ordem
-  const APIS = [
-    // worldcup26.ir direto via proxy CORS
-    { url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://worldcup26.ir/get/games'), headers: {}, parse: parseFmtB },
-    { url: 'https://corsproxy.io/?url=' + encodeURIComponent('https://worldcup26.ir/get/games'), headers: {}, parse: parseFmtB },
-  ];
-
-  let data = null;
-  for (const api of APIS) {
-    try {
-      const r = await fetch(api.url, {
-        signal: AbortSignal.timeout(8000),
-        headers: api.headers || {}
-      });
-      if (!r.ok) continue;
-      const raw = await r.json();
-      const parsed = api.parse(raw);
-      if (parsed && parsed.length > 0) { data = parsed; break; }
-    } catch(e) { continue; }
-  }
-
-  if (!data) {
-    setSS(fbOk?'ok':'err', fbOk?'Firebase 🔥':'API offline');
-    if(manual) toast('⚠️ Todas as fontes offline — insira resultados manualmente no Admin','e');
-    return;
-  }
-
-  let upd=0;
-  data.forEach(g=>{
-    const a1=(g.t1||'').toLowerCase();
-    const a2=(g.t2||'').toLowerCase();
-    const j=ST.jogos.find(x=>{
-      const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-      const x1=norm(x.t1),x2=norm(x.t2),na1=norm(a1),na2=norm(a2);
-      return (x1.includes(na1)||na1.includes(x1))&&(x2.includes(na2)||na2.includes(x2));
-    });
-    if(!j)return;
-    j.live=g.live||false;
-    if(g.g1!=null&&g.g2!=null){
-      const n1=parseInt(g.g1),n2=parseInt(g.g2);
-      if(j.res.g1!==n1||j.res.g2!==n2){j.res={g1:n1,g2:n2};upd++;}
-    }
-  });
-
-  ST.lastSync=new Date().toISOString();save();
-  setSS('ok',fbOk?'Firebase 🔥':'Modo local');
-  if(upd>0){renderJogos();renderBracket();toast('🔄 '+upd+' resultado(s) atualizados!');}
-  else if(manual)toast('✅ Dados já atualizados!');
-}
-
-function parseFmtB(raw){
-  // formato worldcup26.ir — { games: [...] } ou array direto
-  const arr = Array.isArray(raw) ? raw : (raw?.games || raw?.response || null);
-  if(!arr || !Array.isArray(arr)) return null;
-  return arr.map(g=>{
-    const s1 = String(g.home_score ?? '');
-    const s2 = String(g.away_score ?? '');
-    const isLive = (g.time_elapsed||'').toLowerCase() === 'live';
-    const isFinished = String(g.finished).toUpperCase() === 'TRUE';
-    // Só considera placar válido se o jogo está ao vivo ou encerrado
-    const temPlacar = (isLive || isFinished) && s1 !== '' && s1 !== 'null' && s2 !== '' && s2 !== 'null';
-    return {
-      t1: g.home_team_name_en || '',
-      t2: g.away_team_name_en || '',
-      g1: temPlacar ? parseInt(s1) : null,
-      g2: temPlacar ? parseInt(s2) : null,
-      live: isLive,
-      finished: isFinished,
-    };
-  }).filter(g=>g.t1&&g.t2);
-}
-
-function parseFmtA(raw){
-  // formato worldcup26.ir
-  if(!Array.isArray(raw))return null;
-  return raw.map(g=>({
-    t1: g.home_team?.name||g.homeTeam||'',
-    t2: g.away_team?.name||g.awayTeam||'',
-    g1: g.home_score!=null?g.home_score:null,
-    g2: g.away_score!=null?g.away_score:null,
-    live: (g.status||'').toLowerCase().includes('progress')||(g.status||'').toLowerCase()==='live',
-  })).filter(g=>g.t1&&g.t2);
-}
-function setSS(t,txt){
-  const d=document.getElementById('sdot'),s=document.getElementById('stxt');
-  d.className='dot '+(t==='ok'?'ok':t==='spin'?'spin':'err');
-  s.textContent=txt;
-}
-function startSync(){
-  syncAPI(false);
-  clearInterval(syncT);
-  // Verifica se tem jogo acontecendo agora (±3h)
-  function temJogoAgora(){
-    const now=new Date();
-    return ST.jogos.some(j=>{
-      if(!j.dt)return false;
-      const d=new Date(j.dt);
-      const diff=(now-d)/60000; // minutos
-      return diff>=0&&diff<=130; // de 0 a 130 min após o início
-    });
-  }
-  // 5 min se tiver jogo ao vivo, 20 min caso contrário
-  syncT=setInterval(()=>{
-    const intervalo=temJogoAgora()?5*60*1000:20*60*1000;
-    syncAPI(false);
-    clearInterval(syncT);
-    syncT=setInterval(()=>syncAPI(false),intervalo);
-  },temJogoAgora()?5*60*1000:20*60*1000);
-}
-
-// ════════════════════════════════════════════
-// UTILS
-// ════════════════════════════════════════════
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-function fdt(iso){
-  if(!iso)return'—';
-  const d=new Date(iso);
-  return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})
-    +' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-}
-function fhora(iso){
-  if(!iso)return'';
-  const d=new Date(iso);
-  return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-}
-function fdata(iso){
-  if(!iso)return'';
-  const d=new Date(iso);
-  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function toast(m,t=''){const e=document.getElementById('toast');e.textContent=m;e.className='show'+(t==='e'?' e':t==='w'?' w':'');clearTimeout(window._tt);window._tt=setTimeout(()=>e.className='',3100);}
-function pts(p1,p2,r1,r2){
-  if(r1===''||r2===''||r1==null||r2==null)return null;
-  const a=parseInt(p1),b=parseInt(p2),c=parseInt(r1),d=parseInt(r2);
-  if(isNaN(a)||isNaN(b))return null;
-  if(a===c&&b===d)return 3;
-  const pv=a>b?1:a<b?-1:0,rv=c>d?1:c<d?-1:0;
-  return pv===rv?1:0;
-}
-function jogoAberto(j){
-  // jogo aberto = ainda não começou (horário futuro) e não tem resultado
-  if(j.res&&j.res.g1!=='')return false; // já tem resultado
-  if(j.live)return false; // ao vivo
-  if(!j.dt)return true;
-  return new Date(j.dt) > new Date();
-}
-function jogoStatus(j){
-  if(j.live)return 'live';
-  if(j.res&&j.res.g1!=='')return 'fim';
-  if(j.dt && new Date(j.dt) <= new Date())return 'andamento'; // passou hora mas sem resultado ainda
-  return 'aberto';
-}
-
-// ════════════════════════════════════════════
-// TABS
-// ════════════════════════════════════════════
-function showTab(t){
-  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  document.getElementById('pg-'+t).classList.add('on');
-  document.getElementById('tab-'+t).classList.add('active');
-  if(t==='ranking')rRnk();
-  if(t==='palpites')rAll();
-  if(t==='palpitar')renderPalpitar();
-  if(t==='bracket')renderBracket();
-  if(t==='jogos')renderJogos();
-}
+function setSS(t,txt){}
 window.showTab=showTab;
 
 function updSt(){
@@ -1288,8 +1116,6 @@ function exportar(){
   toast('📤 Exportado!');
 }
 window.exportar=exportar;
-function syncAPIWin(){syncAPI(true);}
-window.syncAPIWin=syncAPIWin;
 
 document.getElementById('modal-admin').addEventListener('click',function(e){if(e.target===this)closeAdmin();});
 
@@ -1308,7 +1134,7 @@ window.showTab = function(t){
 };
 
 // START
-initFirebase().then(()=>startSync());
+initFirebase();
 </script>
 
 <button id="fab-salvar" onclick="salvarPalpites()">
