@@ -252,6 +252,11 @@ select option{background:#1a2235;}
     <div style="margin-bottom:1rem" class="fg2">
       <div class="fg"><label>Seu nome / apelido</label><input type="text" id="inp-nome" placeholder="Ex: João Silva" maxlength="40" oninput="renderPalpitar()" onchange="renderPalpitar()"/></div>
     </div>
+    <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
+      <button class="btn btn-y btn-sm" id="view-grupo" onclick="setViewPalpitar('grupo')">📅 Por grupo</button>
+      <button class="btn btn-o btn-sm" id="view-dia" onclick="setViewPalpitar('dia')">🗓️ Por dia</button>
+      <button class="btn btn-o btn-sm" id="view-enc" onclick="setViewPalpitar('enc')">✅ Encerrados</button>
+    </div>
     <p class="ht" style="margin-bottom:1rem">⏰ Palpites só são aceitos <strong>antes do jogo começar</strong>. Jogos em andamento ou encerrados aparecem bloqueados.</p>
     <div id="plist"><div class="empty"><div class="ei">📋</div><p>Digite seu nome acima para carregar os jogos.</p></div></div>
   </div>
@@ -371,7 +376,7 @@ const COPA = [
   {id:'c6',t1:'Marrocos',t2:'Haiti',dt:'2026-06-24T19:00',fase:'Grupos',gr:'C',city:'Atlanta'},
   // GRUPO D — EUA, Paraguai, Austrália, Turquia
   {id:'d1',t1:'Estados Unidos',t2:'Paraguai',dt:'2026-06-12T22:00',fase:'Grupos',gr:'D',city:'Los Angeles'},
-  {id:'d2',t1:'Austrália',t2:'Turquia',dt:'2026-06-13T01:00',fase:'Grupos',gr:'D',city:'Vancouver'},
+  {id:'d2',t1:'Austrália',t2:'Turquia',dt:'2026-06-14T01:00',fase:'Grupos',gr:'D',city:'Vancouver'},
   {id:'d3',t1:'Turquia',t2:'Paraguai',dt:'2026-06-19T01:00',fase:'Grupos',gr:'D',city:'San Francisco'},
   {id:'d4',t1:'Estados Unidos',t2:'Austrália',dt:'2026-06-19T16:00',fase:'Grupos',gr:'D',city:'Seattle'},
   {id:'d5',t1:'Turquia',t2:'Estados Unidos',dt:'2026-06-25T23:00',fase:'Grupos',gr:'D',city:'Los Angeles'},
@@ -762,6 +767,16 @@ function renderBracket(){
 // ════════════════════════════════════════════
 // PALPITAR
 // ════════════════════════════════════════════
+let _viewPalpitar='grupo';
+function setViewPalpitar(v){
+  _viewPalpitar=v;
+  document.getElementById('view-grupo').className='btn btn-'+(v==='grupo'?'y':'o')+' btn-sm';
+  document.getElementById('view-dia').className='btn btn-'+(v==='dia'?'y':'o')+' btn-sm';
+  document.getElementById('view-enc').className='btn btn-'+(v==='enc'?'y':'o')+' btn-sm';
+  renderPalpitar();
+}
+window.setViewPalpitar=setViewPalpitar;
+
 function renderPalpitar(){
   const el=document.getElementById('plist');
   const nome=document.getElementById('inp-nome').value.trim();
@@ -778,6 +793,95 @@ function renderPalpitar(){
 
   let h='';
   let temAberto=false;
+
+  // ── VISÃO ENCERRADOS ──
+  if(_viewPalpitar==='enc'){
+    const encerrados=ST.jogos.filter(j=>jogoStatus(j)==='fim').sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+    if(!encerrados.length){
+      el.innerHTML='<div class="empty"><div class="ei">✅</div><p>Nenhum jogo encerrado ainda.</p></div>';
+      updateFAB();return;
+    }
+    // Agrupa por grupo/fase
+    const byGrupo={};
+    encerrados.forEach(j=>{
+      const key=j.fase==='Grupos'?'Grupo '+j.gr:(j.fase||'Outros');
+      if(!byGrupo[key])byGrupo[key]=[];
+      byGrupo[key].push(j);
+    });
+    let he='<p class="ht" style="margin-bottom:.75rem">Os palpites dos jogos encerrados não podem mais ser alterados.</p>';
+    Object.entries(byGrupo).forEach(([grp,jogosG])=>{
+      he+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--amarelo);margin:.75rem 0 .5rem;display:flex;align-items:center;gap:.5rem">
+        ✅ ${grp}<span style="flex:1;height:1px;background:var(--border);display:block"></span></div>`;
+      jogosG.forEach(j=>{
+        const p=nome?ST.palpites.find(x=>x.nome.toLowerCase()===nome.toLowerCase()&&x.jid===j.id):null;
+        const r=p?pts(p.g1,p.g2,j.res.g1,j.res.g2):null;
+        const bc=r===3?'by':r===1?'bg':r===0?'br':'';
+        he+=`<div class="jc" style="opacity:.75;cursor:default">
+          <div class="jt2">${fl(j.t1)} ${j.t1}</div>
+          <div class="jmid">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--amarelo);letter-spacing:2px">${j.res.g1}×${j.res.g2}</div>
+            ${p?`<div style="font-size:.75rem;margin-top:2px">Seu palpite: <strong>${p.g1}×${p.g2}</strong> ${r!==null?`<span class="badge ${bc}">${r===3?'+3':r===1?'+1':'0'}</span>`:''}</div>`
+              :`<div class="locked-msg">Sem palpite</div>`}
+            <div class="ji">${fdata(j.dt)} ${fhora(j.dt)}</div>
+          </div>
+          <div class="jt2 r">${j.t2} ${fl(j.t2)}</div>
+        </div>`;
+      });
+    });
+    el.innerHTML=he;
+    updateFAB();return;
+  }
+
+  // ── VISÃO POR DIA ──
+  if(_viewPalpitar==='dia'){
+    // Agrupa só jogos não encerrados por data
+    const abertos=ST.jogos.filter(j=>jogoStatus(j)!=='fim');
+    const dias={};
+    abertos.forEach(j=>{
+      if(!j.dt)return;
+      const d=new Date(j.dt);
+      const key=d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'});
+      if(!dias[key])dias[key]=[];
+      dias[key].push(j);
+    });
+    let hd='';
+    Object.entries(dias).sort((a,b)=>new Date(abertos.find(j=>fdata(j.dt)+' '+fhora(j.dt)===a[0].split(' ')[0])?.dt||0)-new Date(abertos.find(j=>fdata(j.dt)+' '+fhora(j.dt)===b[0].split(' ')[0])?.dt||0)).forEach(([dia,jogosD])=>{
+      jogosD.sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+      const temAbertosHoje=jogosD.some(j=>jogoAberto(j));
+      hd+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--amarelo);margin:.75rem 0 .5rem;display:flex;align-items:center;gap:.5rem;text-transform:capitalize">
+        📅 ${dia}<span style="flex:1;height:1px;background:var(--border);display:block"></span></div>`;
+      jogosD.forEach(j=>{
+        const aberto=jogoAberto(j);
+        const st=jogoStatus(j);
+        const p=nome?ST.palpites.find(x=>x.nome.toLowerCase()===nome.toLowerCase()&&x.jid===j.id):null;
+        if(aberto)temAberto=true;
+        const lockMsg=st==='live'?'🔴 Ao vivo':st==='fim'?'✓ Encerrado':st==='andamento'?'⏰ Iniciado':'';
+        hd+=`<div class="jc" style="${!aberto?'opacity:.6':''}${j.live?';border:1px solid rgba(239,68,68,.5);background:rgba(239,68,68,.05)':''}">
+          <div class="jt2">${fl(j.t1)} ${j.t1}</div>
+          <div class="jmid">
+            <div class="js">
+              <input type="number" min="0" max="99" placeholder="?" value="${p?p.g1:''}" id="pp-${j.id}-1" ${!aberto?'disabled':''}/>
+              <span>×</span>
+              <input type="number" min="0" max="99" placeholder="?" value="${p?p.g2:''}" id="pp-${j.id}-2" ${!aberto?'disabled':''}/>
+            </div>
+            <div class="ji">${fhora(j.dt)}${j.gr?' · Gr.'+j.gr:' · '+j.fase}${j.city?' · '+j.city:''}</div>
+            ${lockMsg?`<div class="locked-msg">${lockMsg}</div>`:''}
+          </div>
+          <div class="jt2 r">${j.t2} ${fl(j.t2)}</div>
+        </div>`;
+      });
+    });
+    el.innerHTML=hd||'<div class="empty"><div class="ei">✅</div><p>Nenhum jogo disponível.</p></div>';
+    // Restore saved values
+    Object.entries(savedVals).forEach(([jid,val])=>{
+      const i1=document.getElementById('pp-'+jid+'-1');
+      const i2=document.getElementById('pp-'+jid+'-2');
+      if(i1&&val.g1!==''){i1.value=val.g1;}
+      if(i2&&val.g2!==''){i2.value=val.g2;}
+    });
+    updateFAB();
+    return;
+  }
 
   // ── FASE DE GRUPOS (por grupo) ──
   const gruposComJogos=GRUPOS.filter(gr=>ST.jogos.some(j=>j.fase==='Grupos'&&j.gr===gr));
@@ -994,17 +1098,19 @@ function showDet(nome){
   document.getElementById('det')?.remove();
   const res=ST.jogos.filter(j=>j.res&&j.res.g1!=='');
   let h=`<h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--amarelo);margin-bottom:.9rem">📊 ${esc(nome)}</h3>`;
-  h+=`<div style="display:grid;grid-template-columns:1fr 55px 55px 50px;gap:.35rem;padding:.32rem .65rem;font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase">
-    <span>Jogo</span><span style="text-align:center">Palpite</span><span style="text-align:center">Result.</span><span style="text-align:right">Pts</span></div>`;
   res.forEach(j=>{
     const pal=ST.palpites.find(x=>x.nome.toLowerCase()===nome.toLowerCase()&&x.jid===j.id);
     const r=pal?pts(pal.g1,pal.g2,j.res.g1,j.res.g2):null;
     const bc=r===3?'by':r===1?'bg':r===0?'br':'';
-    h+=`<div class="dj">
-      <div>${fl(j.t1)} ${j.t1} × ${j.t2} ${fl(j.t2)}</div>
-      <div style="text-align:center;font-weight:700">${pal?pal.g1+'×'+pal.g2:'—'}</div>
-      <div style="text-align:center">${j.res.g1}×${j.res.g2}</div>
-      <div style="text-align:right">${r!==null?`<span class="badge ${bc}">${r===3?'+3':r===1?'+1':'0'}</span>`:'—'}</div>
+    h+=`<div style="background:var(--card2);border-radius:8px;padding:.55rem .75rem;margin-bottom:.4rem;border-left:3px solid ${r===3?'var(--amarelo)':r===1?'var(--verde)':r===0?'#dc2626':'var(--border)'}">
+      <div style="font-size:.8rem;font-weight:600;margin-bottom:.3rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fl(j.t1)} ${j.t1} × ${j.t2} ${fl(j.t2)}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
+        <div style="font-size:.75rem;color:var(--muted)">
+          Palpite: <strong style="color:var(--text)">${pal?pal.g1+'×'+pal.g2:'—'}</strong>
+          &nbsp;·&nbsp; Resultado: <strong style="color:var(--amarelo)">${j.res.g1}×${j.res.g2}</strong>
+        </div>
+        <div style="flex-shrink:0">${r!==null?`<span class="badge ${bc}" style="font-size:.75rem;padding:3px 9px">${r===3?'+3 pts':r===1?'+1 pt':'0 pts'}</span>`:'<span style="color:var(--muted);font-size:.75rem">sem palpite</span>'}</div>
+      </div>
     </div>`;
   });
   const ent=calcRnk().find(x=>x.nome.toLowerCase()===nome.toLowerCase());
