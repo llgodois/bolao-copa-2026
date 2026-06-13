@@ -218,6 +218,7 @@ select option{background:#1a2235;}
     <div style="display:flex;flex-wrap:wrap;gap:.4rem" id="filtro-grupos">
       <button class="btn btn-y btn-sm" onclick="filtrarGrupo('todos')" id="fg-todos">Todos</button>
       <button class="btn btn-o btn-sm" onclick="filtrarGrupo('andamento')" id="fg-andamento">🔴 Ao vivo</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('hoje')" id="fg-hoje">📅 Hoje</button>
       <button class="btn btn-o btn-sm" onclick="filtrarGrupo('A')" id="fg-A">A</button>
       <button class="btn btn-o btn-sm" onclick="filtrarGrupo('B')" id="fg-B">B</button>
       <button class="btn btn-o btn-sm" onclick="filtrarGrupo('C')" id="fg-C">C</button>
@@ -623,6 +624,42 @@ function renderJogos(){
   const el=document.getElementById('grupos-grid');
   let h='';
 
+  // Filtro HOJE
+  if(_filtroAtivo==='hoje'){
+    const hoje=new Date();
+    const jogosHoje=ST.jogos.filter(j=>{
+      if(!j.dt)return false;
+      const d=new Date(j.dt);
+      return d.getFullYear()===hoje.getFullYear()&&d.getMonth()===hoje.getMonth()&&d.getDate()===hoje.getDate();
+    }).sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+    if(!jogosHoje.length){
+      el.innerHTML='<div class="empty"><div class="ei">📅</div><p>Nenhum jogo hoje.</p></div>';
+      updSt();return;
+    }
+    let hh='';
+    jogosHoje.forEach(j=>{
+      const ok=j.res&&j.res.g1!=='';
+      const st=jogoStatus(j);
+      const w1=ok&&j.res.g1>j.res.g2,w2=ok&&j.res.g2>j.res.g1;
+      const isLive=j.live||st==='andamento';
+      hh+=`<div class="grupo-card" style="${isLive?'border:2px solid rgba(239,68,68,.5)':''}">
+        <div class="grupo-header" style="${isLive?'background:rgba(239,68,68,.3)':''}">
+          ${j.gr?'Grupo '+j.gr:j.fase} · ${j.city||''}
+        </div>
+        <div class="jogo-row" style="${isLive?'background:rgba(239,68,68,.05)':''}">
+          <div class="jt"><span style="${w1?'color:var(--amarelo);font-weight:700':''}">${fl(j.t1)} ${j.t1}</span></div>
+          <div class="jm">
+            ${ok?`<div class="placar">${j.res.g1}<span style="color:var(--muted)">-</span>${j.res.g2}</div>`
+               :`<div style="font-size:.75rem;color:var(--muted);font-weight:600">${fhora(j.dt)}</div>`}
+            ${isLive?'<span class="badge blv">🔴 AO VIVO</span>':ok?'<span class="badge bg">✓ Encerrado</span>':''}
+          </div>
+          <div class="jt r"><span style="${w2?'color:var(--amarelo);font-weight:700':''}">${j.t2} ${fl(j.t2)}</span></div>
+        </div>
+      </div>`;
+    });
+    el.innerHTML=hh;updSt();return;
+  }
+
   // Filtro ao vivo
   if(_filtroAtivo==='andamento'){
     const aoVivo=ST.jogos.filter(j=>j.live||(jogoStatus(j)==='andamento')).sort((a,b)=>new Date(a.dt)-new Date(b.dt));
@@ -688,11 +725,9 @@ function renderJogos(){
           <span style="${w1?'color:var(--amarelo);font-weight:700':''}">${fl(j.t1)} ${j.t1}</span>
         </div>
         <div class="jm">
-          ${ok
-            ?`<div class="placar">${j.res.g1}<span style="color:var(--muted)">-</span>${j.res.g2}</div>
-              ${j.live?'<span class="badge blv" style="margin-top:2px;display:inline-block">🔴 Ao vivo</span>':''}` 
-            :st==='live'?'<span class="badge blv">🔴 Ao vivo</span>'
-            :st==='andamento'?'<span class="badge blo">Em breve</span>'
+          ${(ok||(j.live||st==='andamento'))
+            ?`<div class="placar" style="${j.live||st==='andamento'?'color:#f87171':''}">${ok?j.res.g1:0}<span style="color:var(--muted)">-</span>${ok?j.res.g2:0}</div>
+              ${j.live||st==='andamento'?'<span class="badge blv" style="margin-top:2px;display:inline-block">🔴 Ao vivo</span>':''}` 
             :`<div style="font-size:.7rem;color:var(--muted)">${fdata(j.dt)}<br>${fhora(j.dt)}</div>`}
         </div>
         <div class="jt r">
