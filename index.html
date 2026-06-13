@@ -309,7 +309,14 @@ select option{background:#1a2235;}
       <button class="btn btn-g btn-sm" onclick="salvarCfg()">💾 Salvar</button>
       <hr class="divider">
       <div class="sec">Resultados Manuais (backup)</div>
-      <p class="ht" style="margin-bottom:.7rem">Insira resultados manualmente caso o sync automático não pegue.</p>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem">
+        <button class="btn btn-y btn-sm" onclick="filtroAdmin('hoje')" id="fadm-hoje">📅 Hoje</button>
+        <button class="btn btn-o btn-sm" onclick="filtroAdmin('andamento')" id="fadm-andamento">🔴 Ao vivo</button>
+        <button class="btn btn-o btn-sm" onclick="filtroAdmin('prox')" id="fadm-prox">⏳ Próximos</button>
+        <button class="btn btn-o btn-sm" onclick="filtroAdmin('enc')" id="fadm-enc">✅ Encerrados</button>
+        <button class="btn btn-o btn-sm" onclick="filtroAdmin('mata')" id="fadm-mata">🏆 Mata-mata</button>
+        <button class="btn btn-o btn-sm" onclick="filtroAdmin('todos')" id="fadm-todos">Todos</button>
+      </div>
       <div id="adm-jogos"><p class="ht">Carregando...</p></div>
       <hr class="divider">
       <hr class="divider">
@@ -1334,9 +1341,32 @@ function addJogo(){
   toast('✅ Adicionado!');
 }
 window.addJogo=addJogo;
+let _filtroAdmin='hoje';
+function filtroAdmin(f){
+  _filtroAdmin=f;
+  document.querySelectorAll('[id^="fadm-"]').forEach(b=>b.className='btn btn-o btn-sm');
+  const el=document.getElementById('fadm-'+f);
+  if(el)el.className='btn btn-y btn-sm';
+  rAdmJ();
+}
+window.filtroAdmin=filtroAdmin;
+
 function rAdmJ(){
   const el=document.getElementById('adm-jogos');
-  const jogos=ST.jogos.filter(j=>j.fase==='Grupos'||j.fase==='R32'||j.fase==='Oitavas'||j.fase==='Quartas'||j.fase==='Semifinal'||j.fase==='3º Lugar'||j.fase==='Final');
+  const hoje=new Date();
+  const todosFiltro=ST.jogos.filter(j=>{
+    if(_filtroAdmin==='mata') return j.fase!=='Grupos';
+    if(_filtroAdmin==='enc') return j.res&&j.res.g1!==''&&!j.live;
+    if(_filtroAdmin==='andamento') return j.live||(jogoStatus(j)==='andamento');
+    if(_filtroAdmin==='hoje'){
+      if(!j.dt)return false;
+      const d=new Date(j.dt);
+      return d.getFullYear()===hoje.getFullYear()&&d.getMonth()===hoje.getMonth()&&d.getDate()===hoje.getDate();
+    }
+    if(_filtroAdmin==='prox') return jogoAberto(j);
+    return true; // todos
+  });
+  const jogos=todosFiltro;
   const SELECOES=['A definir','Alemanha','Argentina','Argélia','Arábia Saudita','Austrália','Brasil','Bélgica','Bósnia-Herzegovina','Cabo Verde','Canadá','Colômbia','Congo (RD)','Coreia do Sul','Costa do Marfim','Croácia','Curaçao','Egito','Equador','Escócia','Espanha','Estados Unidos','França','Gana','Haiti','Inglaterra','Iraque','Irã','Japão','Jordânia','Marrocos','México','Nova Zelândia','Noruega','Países Baixos','Panamá','Paraguai','Portugal','Qatar','Reino Unido','República Tcheca','Senegal','Suécia','Suíça','Tunísia','Turquia','Uruguai','Uzbequistão','Áustria'];
   const optsHtml=SELECOES.map(t=>`<option value="${t}">${t}</option>`).join('');
   let h='';
