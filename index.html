@@ -884,8 +884,9 @@ function rRnk(){
   const mx=rk[0].p||1;
   let h=`<table class="rtbl"><thead><tr>
     <th style="width:40px">Pos</th><th>Participante</th>
+    <th style="text-align:center">Pts</th>
     <th style="text-align:center">🎯 Exatos</th><th style="text-align:center">✅ Venc.</th>
-    <th style="text-align:center">❌ Erros</th><th style="text-align:right">Pts</th>
+    <th style="text-align:center">❌ Erros</th>
   </tr></thead><tbody>`;
   rk.forEach((x,i)=>{
     const pc=i===0?'p1':i===1?'p2':i===2?'p3':'pn';
@@ -893,10 +894,10 @@ function rRnk(){
     h+=`<tr onclick="showDet('${esc(x.nome)}')" style="cursor:pointer">
       <td><span class="pos ${pc}">${i+1}</span></td>
       <td><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${esc(x.nome)}</div><div class="pb"><div class="pbi" style="width:${pct}%"></div></div></td>
+      <td class="pc" style="text-align:center">${x.p}</td>
       <td style="text-align:center"><span class="badge by">${x.ex}</span></td>
       <td style="text-align:center"><span class="badge bg">${x.vc}</span></td>
       <td style="text-align:center"><span class="badge br">${x.er}</span></td>
-      <td class="pc" style="text-align:right">${x.p}</td>
     </tr>`;
   });
   h+='</tbody></table><p class="ht" style="margin-top:.65rem;text-align:center">Clique para ver detalhes</p>';
