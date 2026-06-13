@@ -315,7 +315,12 @@ select option{background:#1a2235;}
       <div class="sec">👥 Participantes e Palpites</div>
       <p class="ht" style="margin-bottom:.7rem">Gerencie participantes — apague palpites individuais ou remova o participante por completo.</p>
       <div id="adm-users"><p class="ht">Carregando...</p></div>
-            <div class="sec" style="color:#f87171">Perigo</div>
+            <div class="sec">Manutenção</div>
+      <p class="ht" style="margin-bottom:.7rem">Atualiza datas e dados dos jogos a partir do código, <strong>sem apagar palpites ou resultados</strong>.</p>
+      <button class="btn btn-o btn-sm" onclick="sincronizarJogos()">🔄 Sincronizar datas dos jogos</button>
+
+      <hr class="divider">
+      <div class="sec" style="color:#f87171">Perigo</div>
       <div style="display:flex;gap:.55rem;flex-wrap:wrap">
         <button class="btn btn-r btn-sm" onclick="resetTudo()">🗑️ Apagar tudo</button>
         <button class="btn btn-o btn-sm" onclick="exportar()">📤 Exportar JSON</button>
@@ -377,7 +382,7 @@ const COPA = [
   // GRUPO D — EUA, Paraguai, Austrália, Turquia
   {id:'d1',t1:'Estados Unidos',t2:'Paraguai',dt:'2026-06-12T22:00',fase:'Grupos',gr:'D',city:'Los Angeles'},
   {id:'d2',t1:'Austrália',t2:'Turquia',dt:'2026-06-14T01:00',fase:'Grupos',gr:'D',city:'Vancouver'},
-  {id:'d3',t1:'Turquia',t2:'Paraguai',dt:'2026-06-19T01:00',fase:'Grupos',gr:'D',city:'San Francisco'},
+  {id:'d3',t1:'Turquia',t2:'Paraguai',dt:'2026-06-20T00:00',fase:'Grupos',gr:'D',city:'San Francisco'},
   {id:'d4',t1:'Estados Unidos',t2:'Austrália',dt:'2026-06-19T16:00',fase:'Grupos',gr:'D',city:'Seattle'},
   {id:'d5',t1:'Turquia',t2:'Estados Unidos',dt:'2026-06-25T23:00',fase:'Grupos',gr:'D',city:'Los Angeles'},
   {id:'d6',t1:'Paraguai',t2:'Austrália',dt:'2026-06-25T23:00',fase:'Grupos',gr:'D',city:'San Francisco'},
@@ -391,7 +396,7 @@ const COPA = [
   // GRUPO F — Países Baixos, Japão, Suécia, Tunísia
   {id:'f1',t1:'Países Baixos',t2:'Japão',dt:'2026-06-14T17:00',fase:'Grupos',gr:'F',city:'Dallas'},
   {id:'f2',t1:'Suécia',t2:'Tunísia',dt:'2026-06-14T23:00',fase:'Grupos',gr:'F',city:'Monterrey'},
-  {id:'f3',t1:'Tunísia',t2:'Japão',dt:'2026-06-20T01:00',fase:'Grupos',gr:'F',city:'Monterrey'},
+  {id:'f3',t1:'Tunísia',t2:'Japão',dt:'2026-06-21T01:00',fase:'Grupos',gr:'F',city:'Monterrey'},
   {id:'f4',t1:'Países Baixos',t2:'Suécia',dt:'2026-06-20T14:00',fase:'Grupos',gr:'F',city:'Houston'},
   {id:'f5',t1:'Japão',t2:'Suécia',dt:'2026-06-25T20:00',fase:'Grupos',gr:'F',city:'Dallas'},
   {id:'f6',t1:'Tunísia',t2:'Países Baixos',dt:'2026-06-25T20:00',fase:'Grupos',gr:'F',city:'Kansas City'},
@@ -417,9 +422,9 @@ const COPA = [
   {id:'i5',t1:'Noruega',t2:'França',dt:'2026-06-26T16:00',fase:'Grupos',gr:'I',city:'Boston'},
   {id:'i6',t1:'Senegal',t2:'Iraque',dt:'2026-06-26T16:00',fase:'Grupos',gr:'I',city:'Toronto'},
   // GRUPO J — Argentina, Argélia, Áustria, Jordânia
-  {id:'j1',t1:'Áustria',t2:'Jordânia',dt:'2026-06-16T01:00',fase:'Grupos',gr:'J',city:'San Francisco'},
+  {id:'j1',t1:'Áustria',t2:'Jordânia',dt:'2026-06-17T01:00',fase:'Grupos',gr:'J',city:'San Francisco'},
   {id:'j2',t1:'Argentina',t2:'Argélia',dt:'2026-06-16T22:00',fase:'Grupos',gr:'J',city:'Kansas City'},
-  {id:'j3',t1:'Jordânia',t2:'Argélia',dt:'2026-06-22T00:00',fase:'Grupos',gr:'J',city:'San Francisco'},
+  {id:'j3',t1:'Jordânia',t2:'Argélia',dt:'2026-06-23T00:00',fase:'Grupos',gr:'J',city:'San Francisco'},
   {id:'j4',t1:'Argentina',t2:'Áustria',dt:'2026-06-22T14:00',fase:'Grupos',gr:'J',city:'Dallas'},
   {id:'j5',t1:'Argélia',t2:'Áustria',dt:'2026-06-27T23:00',fase:'Grupos',gr:'J',city:'Kansas City'},
   {id:'j6',t1:'Jordânia',t2:'Argentina',dt:'2026-06-27T23:00',fase:'Grupos',gr:'J',city:'Dallas'},
@@ -836,16 +841,20 @@ function renderPalpitar(){
   if(_viewPalpitar==='dia'){
     // Agrupa só jogos não encerrados por data
     const abertos=ST.jogos.filter(j=>jogoStatus(j)!=='fim');
-    const dias={};
+    // Pré-calcula datas uma vez só
+    const diasMap={};
+    const diasOrder=[];
     abertos.forEach(j=>{
       if(!j.dt)return;
       const d=new Date(j.dt);
       const key=d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'});
-      if(!dias[key])dias[key]=[];
-      dias[key].push(j);
+      if(!diasMap[key]){diasMap[key]=[];diasOrder.push({key,ts:d.getTime()});}
+      diasMap[key].push(j);
     });
+    diasOrder.sort((a,b)=>a.ts-b.ts);
     let hd='';
-    Object.entries(dias).sort((a,b)=>new Date(abertos.find(j=>fdata(j.dt)+' '+fhora(j.dt)===a[0].split(' ')[0])?.dt||0)-new Date(abertos.find(j=>fdata(j.dt)+' '+fhora(j.dt)===b[0].split(' ')[0])?.dt||0)).forEach(([dia,jogosD])=>{
+    diasOrder.forEach(({key:dia})=>{
+      const jogosD=diasMap[dia];
       jogosD.sort((a,b)=>new Date(a.dt)-new Date(b.dt));
       const temAbertosHoje=jogosD.some(j=>jogoAberto(j));
       hd+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--amarelo);margin:.75rem 0 .5rem;display:flex;align-items:center;gap:.5rem;text-transform:capitalize">
@@ -1460,6 +1469,31 @@ function apagarPalpiteJogo(nome,jid){
   toast('✅ Palpite removido.');
 }
 window.apagarPalpiteJogo=apagarPalpiteJogo;
+
+function sincronizarJogos(){
+  if(!confirm('Atualizar datas e dados dos jogos sem apagar palpites ou resultados?'))return;
+  // Para cada jogo no COPA, atualiza dt e city mas preserva res e live do Firebase
+  COPA.forEach(copaJ=>{
+    const j=ST.jogos.find(x=>x.id===copaJ.id);
+    if(j){
+      // Atualiza só campos que podem ter mudado, preserva resultado e status
+      j.dt=copaJ.dt;
+      j.city=copaJ.city;
+      j.fase=copaJ.fase;
+      j.gr=copaJ.gr;
+      // Só atualiza times se ainda for "A definir"
+      if(j.t1==='A definir')j.t1=copaJ.t1;
+      if(j.t2==='A definir')j.t2=copaJ.t2;
+    } else {
+      // Jogo novo que não existia — adiciona
+      ST.jogos.push({...copaJ,res:{g1:'',g2:''},live:false});
+    }
+  });
+  ST.jogos.sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+  save();renderJogos();renderBracket();updSt();rAdmJ();
+  toast('✅ Datas dos jogos sincronizadas!');
+}
+window.sincronizarJogos=sincronizarJogos;
 
 function resetTudo(){
   confirmar('Apagar TUDO?','Esta ação apaga todos os palpites e resultados do Firebase. Irreversível.','Sim, apagar','Cancelar').then(ok=>{
