@@ -213,7 +213,27 @@ select option{background:#1a2235;}
   </div>
   <div class="card">
     <div class="ct">📅 Fase de Grupos</div>
-    <div id="grupos-grid" class="grupos-grid"></div>
+    <div style="margin-bottom:1rem">
+    <div style="font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">Filtrar por grupo</div>
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem" id="filtro-grupos">
+      <button class="btn btn-y btn-sm" onclick="filtrarGrupo('todos')" id="fg-todos">Todos</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('andamento')" id="fg-andamento">🔴 Ao vivo</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('A')" id="fg-A">A</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('B')" id="fg-B">B</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('C')" id="fg-C">C</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('D')" id="fg-D">D</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('E')" id="fg-E">E</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('F')" id="fg-F">F</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('G')" id="fg-G">G</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('H')" id="fg-H">H</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('I')" id="fg-I">I</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('J')" id="fg-J">J</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('K')" id="fg-K">K</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('L')" id="fg-L">L</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('mata')" id="fg-mata">🏆 Mata-mata</button>
+    </div>
+  </div>
+  <div id="grupos-grid" class="grupos-grid"></div>
   </div>
 </div>
 
@@ -575,10 +595,73 @@ function pts(p1,p2,r1,r2){
   return pv===rv?1:0;
 }
 
+let _filtroAtivo='todos';
+
+function filtrarGrupo(f){
+  _filtroAtivo=f;
+  // Update button styles
+  document.querySelectorAll('#filtro-grupos button').forEach(b=>{
+    b.className='btn btn-o btn-sm';
+  });
+  const active=document.getElementById('fg-'+f);
+  if(active)active.className='btn btn-y btn-sm';
+  renderJogos();
+}
+window.filtrarGrupo=filtrarGrupo;
+
 function renderJogos(){
   const el=document.getElementById('grupos-grid');
   let h='';
+
+  // Filtro ao vivo
+  if(_filtroAtivo==='andamento'){
+    const aoVivo=ST.jogos.filter(j=>j.live||(jogoStatus(j)==='andamento')).sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+    if(!aoVivo.length){
+      el.innerHTML='<div class="empty"><div class="ei">🔴</div><p>Nenhum jogo ao vivo agora.</p></div>';
+      updSt();return;
+    }
+    aoVivo.forEach(j=>{
+      h+=`<div class="grupo-card" style="border:2px solid rgba(239,68,68,.5)">
+        <div class="grupo-header" style="background:rgba(239,68,68,.3)">${j.gr?'Grupo '+j.gr:j.fase} · 🔴 Ao vivo</div>
+        <div class="jogo-row">
+          <div class="jt"><span style="color:var(--amarelo);font-weight:700">${fl(j.t1)} ${j.t1}</span></div>
+          <div class="jm"><div class="placar" style="font-size:1.5rem">${j.res?.g1??'0'}<span style="color:var(--muted)">-</span>${j.res?.g2??'0'}</div>
+            <span class="badge blv">🔴 AO VIVO</span></div>
+          <div class="jt r"><span style="color:var(--amarelo);font-weight:700">${j.t2} ${fl(j.t2)}</span></div>
+        </div>
+      </div>`;
+    });
+    el.innerHTML=h;updSt();return;
+  }
+
+  // Filtro mata-mata
+  if(_filtroAtivo==='mata'){
+    const fasesMM=['R32','Oitavas','Quartas','Semifinal','3º Lugar','Final'];
+    const faseLabel={R32:'Rodada de 32',Oitavas:'Oitavas de Final',Quartas:'Quartas de Final',Semifinal:'Semifinais','3º Lugar':'3º Lugar',Final:'🏆 Final'};
+    fasesMM.forEach(f=>{
+      const jogos=ST.jogos.filter(j=>j.fase===f).sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+      if(!jogos.length)return;
+      h+=`<div class="grupo-card"><div class="grupo-header">${faseLabel[f]||f}</div>`;
+      jogos.forEach(j=>{
+        const ok=j.res&&j.res.g1!=='';
+        h+=`<div class="jogo-row ${j.live?'':''}">
+          <div class="jt">${fl(j.t1)} ${j.t1}</div>
+          <div class="jm">
+            ${ok?`<div class="placar">${j.res.g1}<span style="color:var(--muted)">-</span>${j.res.g2}</div>`:`<div style="font-size:.7rem;color:var(--muted)">${fdata(j.dt)}<br>${fhora(j.dt)}</div>`}
+            ${j.live?'<span class="badge blv">🔴 AO VIVO</span>':''}
+          </div>
+          <div class="jt r">${j.t2} ${fl(j.t2)}</div>
+        </div>`;
+      });
+      h+='</div>';
+    });
+    el.innerHTML=h||'<div class="empty"><div class="ei">🏆</div><p>Nenhum jogo no mata-mata ainda.</p></div>';
+    updSt();return;
+  }
+
   GRUPOS.forEach(gr=>{
+    // Aplica filtro de grupo
+    if(_filtroAtivo!=='todos'&&_filtroAtivo!==gr)return;
     const jogos=ST.jogos.filter(j=>j.fase==='Grupos'&&j.gr===gr).sort((a,b)=>new Date(a.dt)-new Date(b.dt));
     if(!jogos.length)return;
     // times do grupo
@@ -590,7 +673,7 @@ function renderJogos(){
       const ok=j.res&&j.res.g1!=='';
       const st=jogoStatus(j);
       const w1=ok&&j.res.g1>j.res.g2, w2=ok&&j.res.g2>j.res.g1;
-      h+=`<div class="jogo-row">
+      h+=`<div class="jogo-row" style="${j.live?'background:rgba(239,68,68,.07);border-left:3px solid rgba(239,68,68,.6)':''}">
         <div class="jt ${w1?'':''}">
           <span style="${w1?'color:var(--amarelo);font-weight:700':''}">${fl(j.t1)} ${j.t1}</span>
         </div>
@@ -882,25 +965,28 @@ function rRnk(){
   const rk=calcRnk();
   if(!rk.length){el.innerHTML='<div class="empty"><div class="ei">🏆</div><p>Nenhum resultado ainda.</p></div>';return;}
   const mx=rk[0].p||1;
-  let h=`<table class="rtbl"><thead><tr>
-    <th style="width:40px">Pos</th><th>Participante</th>
-    <th style="text-align:center">Pts</th>
-    <th style="text-align:center">🎯 Exatos</th><th style="text-align:center">✅ Venc.</th>
-    <th style="text-align:center">❌ Erros</th>
-  </tr></thead><tbody>`;
+  let h='';
   rk.forEach((x,i)=>{
     const pc=i===0?'p1':i===1?'p2':i===2?'p3':'pn';
     const pct=Math.round((x.p/mx)*100);
-    h+=`<tr onclick="showDet('${esc(x.nome)}')" style="cursor:pointer">
-      <td><span class="pos ${pc}">${i+1}</span></td>
-      <td><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${esc(x.nome)}</div><div class="pb"><div class="pbi" style="width:${pct}%"></div></div></td>
-      <td class="pc" style="text-align:center">${x.p}</td>
-      <td style="text-align:center"><span class="badge by">${x.ex}</span></td>
-      <td style="text-align:center"><span class="badge bg">${x.vc}</span></td>
-      <td style="text-align:center"><span class="badge br">${x.er}</span></td>
-    </tr>`;
+    h+=`<div onclick="showDet('${esc(x.nome)}')" style="display:flex;align-items:center;gap:.75rem;padding:.75rem .9rem;border-radius:10px;background:var(--card2);margin-bottom:.5rem;cursor:pointer;border:1px solid var(--border)">
+      <span class="pos ${pc}" style="flex-shrink:0">${i+1}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.nome)}</div>
+        <div style="display:flex;gap:.4rem;margin-top:4px;flex-wrap:wrap">
+          <span class="badge by">🎯 ${x.ex} exato${x.ex!==1?'s':''}</span>
+          <span class="badge bg">✅ ${x.vc} venc.</span>
+          <span class="badge br">❌ ${x.er} erro${x.er!==1?'s':''}</span>
+        </div>
+        <div class="pb" style="margin-top:5px"><div class="pbi" style="width:${pct}%"></div></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--amarelo);line-height:1">${x.p}</div>
+        <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">pts</div>
+      </div>
+    </div>`;
   });
-  h+='</tbody></table><p class="ht" style="margin-top:.65rem;text-align:center">Clique para ver detalhes</p>';
+  h+='<p class="ht" style="margin-top:.65rem;text-align:center">Toque para ver detalhes</p>';
   el.innerHTML=h;
 }
 window.rRnk=rRnk;
