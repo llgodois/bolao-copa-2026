@@ -547,6 +547,34 @@ function updSt(){
 // ════════════════════════════════════════════
 // RENDER JOGOS — FASE DE GRUPOS
 // ════════════════════════════════════════════
+function fdt(iso){if(!iso)return'—';const d=new Date(iso);return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+function fhora(iso){if(!iso)return'';const d=new Date(iso);return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+function fdata(iso){if(!iso)return'';const d=new Date(iso);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});}
+function jogoAberto(j){
+  if(j.res&&j.res.g1!=='')return false;
+  if(j.live)return false;
+  if(!j.dt)return true;
+  return new Date(j.dt)>new Date();
+}
+function jogoStatus(j){
+  if(j.live)return'live';
+  if(j.res&&j.res.g1!=='')return'fim';
+  if(j.dt&&new Date(j.dt)<=new Date())return'andamento';
+  return'aberto';
+}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(m,t=''){const e=document.getElementById('toast');e.textContent=m;e.className='show'+(t==='e'?' e':t==='w'?' w':'');clearTimeout(window._tt);window._tt=setTimeout(()=>e.className='',3100);}
+function pts(p1,p2,r1,r2){
+  if(r1===''||r2===''||r1==null||r2==null)return null;
+  const a=parseInt(p1),b=parseInt(p2),c=parseInt(r1),d=parseInt(r2);
+  if(isNaN(a)||isNaN(b))return null;
+  if(a===c&&b===d)return 3;
+  const pv=a>b?1:a<b?-1:0,rv=c>d?1:c<d?-1:0;
+  return pv===rv?1:0;
+}
+
 function renderJogos(){
   const el=document.getElementById('grupos-grid');
   let h='';
@@ -907,36 +935,123 @@ window.showDet=showDet;
 
 function rAll(){
   const el=document.getElementById('alist');
-  if(!ST.palpites.length){el.innerHTML='<div class="empty"><div class="ei">📝</div><p>Nenhum palpite.</p></div>';return;}
-  const byF={};
-  ST.jogos.forEach(j=>{if(!byF[j.fase])byF[j.fase]=[];byF[j.fase].push(j);});
-  let h='';
-  FO.forEach(f=>{
-    if(!byF[f])return;
-    byF[f].sort((a,b)=>new Date(a.dt)-new Date(b.dt)).forEach(j=>{
+  if(!ST.palpites.length&&!ST.jogos.length){el.innerHTML='<div class="empty"><div class="ei">📝</div><p>Nenhum palpite.</p></div>';return;}
+
+  // Separar jogos por status
+  const proximos=ST.jogos.filter(j=>jogoStatus(j)==='aberto').sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+  const aoVivo=ST.jogos.filter(j=>jogoStatus(j)==='live'||jogoStatus(j)==='andamento').sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+  const encerrados=ST.jogos.filter(j=>jogoStatus(j)==='fim').sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+
+  let h=`<div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1rem">
+    <button class="tab ${aoVivo.length?'active':encerrados.length?'':'active'}" onclick="switchPalpitesTab('live')" id="ptab-live" style="font-size:.78rem;padding:.65rem 1rem">🔴 Ao vivo (${aoVivo.length})</button>
+    <button class="tab ${!aoVivo.length&&encerrados.length?'active':''}" onclick="switchPalpitesTab('fim')" id="ptab-fim" style="font-size:.78rem;padding:.65rem 1rem">✅ Encerrados (${encerrados.length})</button>
+    <button class="tab" onclick="switchPalpitesTab('prox')" id="ptab-prox" style="font-size:.78rem;padding:.65rem 1rem">🕐 Próximos (${proximos.length})</button>
+  </div>`;
+
+  // AO VIVO
+  h+=`<div id="ppg-live" style="display:${aoVivo.length||(!encerrados.length)?'block':'none'}">`;
+  if(!aoVivo.length){
+    h+='<div class="empty"><div class="ei">🔴</div><p>Nenhum jogo ao vivo agora.</p></div>';
+  }else{
+    aoVivo.forEach(j=>{
       const jp=ST.palpites.filter(p=>p.jid===j.id);
-      if(!jp.length)return;
-      const ok=j.res&&j.res.g1!=='';
-      const sec=f==='Grupos'?`Gr.${j.gr} · `:'';
       h+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:1px;color:var(--muted);margin:1rem 0 .45rem;display:flex;align-items:center;gap:.4rem">
-        ${sec}${fl(j.t1)} ${j.t1} × ${j.t2} ${fl(j.t2)}
+        ${fl(j.t1)} ${j.t1} × ${j.t2} ${fl(j.t2)} <span class="badge blv">AO VIVO</span>
         <span style="flex:1;height:1px;background:var(--border);display:block"></span></div>`;
-      h+=`<div style="display:grid;grid-template-columns:minmax(0,1fr) 62px 62px 44px;gap:.35rem;padding:.32rem .65rem;font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase">
+      if(!jp.length){h+='<p class="ht" style="margin-bottom:.75rem">Nenhum palpite para este jogo.</p>';return;}
+      h+=`<div style="display:grid;grid-template-columns:minmax(0,1fr) 70px 70px 55px;gap:.35rem;padding:.32rem .65rem;font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase">
         <span>Participante</span><span style="text-align:center">Palpite</span><span style="text-align:center">Resultado</span><span style="text-align:right">Pts</span></div>`;
+      const ok=j.res&&j.res.g1!=='';
       jp.sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(p=>{
         const r=ok?pts(p.g1,p.g2,j.res.g1,j.res.g2):null;
         const bc=r===3?'by':r===1?'bg':r===0?'br':'';
-        h+=`<div style="display:grid;grid-template-columns:minmax(0,1fr) 62px 62px 44px;gap:.35rem;align-items:center;padding:.5rem .65rem;border-radius:8px;background:var(--card2);margin-bottom:.4rem;font-size:.82rem">
-          <span style="font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px">${esc(p.nome)}</span>
+        h+=`<div style="display:grid;grid-template-columns:minmax(0,1fr) 70px 70px 55px;gap:.35rem;align-items:center;padding:.5rem .65rem;border-radius:8px;background:var(--card2);margin-bottom:.4rem;font-size:.82rem">
+          <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.nome)}</span>
           <span style="text-align:center;font-weight:700">${p.g1}×${p.g2}</span>
           <span style="text-align:center;color:var(--muted)">${ok?j.res.g1+'×'+j.res.g2:'—'}</span>
           <span style="text-align:right">${r!==null?`<span class="badge ${bc}">${r===3?'+3':r===1?'+1':'0'}</span>`:'—'}</span>
         </div>`;
       });
     });
-  });
-  el.innerHTML=h||'<div class="empty"><div class="ei">📝</div><p>Nenhum palpite.</p></div>';
+  }
+  h+='</div>';
+
+  // ENCERRADOS — fechado por padrão, abre ao clicar
+  h+=`<div id="ppg-fim" style="display:${!aoVivo.length&&encerrados.length?'block':'none'}">`;
+  if(!encerrados.length){
+    h+='<div class="empty"><div class="ei">✅</div><p>Nenhum jogo encerrado ainda.</p></div>';
+  }else{
+    encerrados.forEach(j=>{
+      const jp=ST.palpites.filter(p=>p.jid===j.id);
+      const jid=j.id;
+      h+=`<div style="margin-bottom:.5rem">
+        <div onclick="togglePalpitesFim('${jid}')" style="display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem;border-radius:8px;background:var(--card2);cursor:pointer;user-select:none">
+          <span style="font-weight:600;font-size:.85rem">${fl(j.t1)} ${j.t1} <span style="color:var(--amarelo);font-family:'Bebas Neue',sans-serif;font-size:1.1rem;margin:0 4px">${j.res.g1}×${j.res.g2}</span> ${j.t2} ${fl(j.t2)}</span>
+          <span style="display:flex;align-items:center;gap:.5rem;flex-shrink:0">
+            <span class="badge bb">${jp.length} palpite(s)</span>
+            <span id="arr-${jid}" style="color:var(--muted);font-size:.8rem;transition:transform .2s">▼</span>
+          </span>
+        </div>
+        <div id="det-fim-${jid}" style="display:none;padding:.5rem 0 0">
+          ${!jp.length?'<p class="ht" style="padding:.5rem .65rem">Nenhum palpite.</p>':`
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 70px 70px 55px;gap:.35rem;padding:.32rem .65rem;font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase">
+            <span>Participante</span><span style="text-align:center">Palpite</span><span style="text-align:center">Resultado</span><span style="text-align:right">Pts</span></div>
+          ${jp.sort((a,b)=>a.nome.localeCompare(b.nome)).map(p=>{
+            const r=pts(p.g1,p.g2,j.res.g1,j.res.g2);
+            const bc=r===3?'by':r===1?'bg':r===0?'br':'';
+            return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 70px 70px 55px;gap:.35rem;align-items:center;padding:.5rem .65rem;border-radius:8px;background:var(--card2);margin-bottom:.4rem;font-size:.82rem">
+              <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.nome)}</span>
+              <span style="text-align:center;font-weight:700">${p.g1}×${p.g2}</span>
+              <span style="text-align:center;color:var(--muted)">${j.res.g1}×${j.res.g2}</span>
+              <span style="text-align:right"><span class="badge ${bc}">${r===3?'+3':r===1?'+1':'0'}</span></span>
+            </div>`;
+          }).join('')}
+          `}
+        </div>
+      </div>`;
+    });
+  }
+  h+='</div>';
+
+  // PRÓXIMOS — sem palpites
+  h+=`<div id="ppg-prox" style="display:none">
+    <div class="alert-y" style="background:rgba(255,223,0,.1);border:1px solid rgba(255,223,0,.3);border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;font-size:.82rem;color:var(--amarelo)">
+      🔒 Os palpites dos jogos futuros ficam ocultos até o jogo começar.
+    </div>`;
+  if(!proximos.length){
+    h+='<div class="empty"><div class="ei">🕐</div><p>Nenhum jogo futuro.</p></div>';
+  }else{
+    proximos.forEach(j=>{
+      const qtd=ST.palpites.filter(p=>p.jid===j.id).length;
+      h+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem;border-radius:8px;background:var(--card2);margin-bottom:.45rem;font-size:.85rem">
+        <span>${fl(j.t1)} ${j.t1} × ${j.t2} ${fl(j.t2)}</span>
+        <span style="color:var(--muted);font-size:.75rem">${fdata(j.dt)} ${fhora(j.dt)} · <span class="badge bb">${qtd} palpite(s)</span></span>
+      </div>`;
+    });
+  }
+  h+='</div>';
+
+  el.innerHTML=h;
 }
+function switchPalpitesTab(tab){
+  ['live','fim','prox'].forEach(t=>{
+    const pg=document.getElementById('ppg-'+t);
+    const tb=document.getElementById('ptab-'+t);
+    if(pg) pg.style.display=t===tab?'block':'none';
+    if(tb) tb.classList.toggle('active',t===tab);
+  });
+}
+window.switchPalpitesTab=switchPalpitesTab;
+function togglePalpitesFim(jid){
+  const det=document.getElementById('det-fim-'+jid);
+  const arr=document.getElementById('arr-'+jid);
+  if(!det)return;
+  const open=det.style.display==='none';
+  det.style.display=open?'block':'none';
+  if(arr)arr.style.transform=open?'rotate(180deg)':'';
+}
+window.togglePalpitesFim=togglePalpitesFim;
+
 
 // ════════════════════════════════════════════
 // ADMIN
@@ -969,17 +1084,46 @@ function salvarCfg(){
   save();updSt();toast('✅ Configurações salvas!');
 }
 window.salvarCfg=salvarCfg;
+function addJogo(){
+  const t1=document.getElementById('at1').value.trim();
+  const t2=document.getElementById('at2').value.trim();
+  const dt=document.getElementById('adt').value;
+  const fase=document.getElementById('afa').value;
+  if(!t1||!t2){toast('Preencha os times!','e');return;}
+  ST.jogos.push({id:uid(),t1,t2,dt,fase,gr:'',city:'',res:{g1:'',g2:''},live:false});
+  ST.jogos.sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+  save();rAdmJ();renderJogos();updSt();
+  document.getElementById('at1').value='';document.getElementById('at2').value='';
+  toast('✅ Adicionado!');
+}
+window.addJogo=addJogo;
 function rAdmJ(){
   const el=document.getElementById('adm-jogos');
   const jogos=ST.jogos.filter(j=>j.fase==='Grupos'||j.fase==='R32'||j.fase==='Oitavas'||j.fase==='Quartas'||j.fase==='Semifinal'||j.fase==='3º Lugar'||j.fase==='Final');
+  const SELECOES=['A definir','Alemanha','Argentina','Argélia','Arábia Saudita','Austrália','Brasil','Bélgica','Bósnia-Herzegovina','Cabo Verde','Canadá','Colômbia','Congo (RD)','Coreia do Sul','Costa do Marfim','Croácia','Curaçao','Egito','Equador','Escócia','Espanha','Estados Unidos','França','Gana','Haiti','Inglaterra','Iraque','Irã','Japão','Jordânia','Marrocos','México','Nova Zelândia','Noruega','Países Baixos','Panamá','Paraguai','Portugal','Qatar','Reino Unido','República Tcheca','Senegal','Suécia','Suíça','Tunísia','Turquia','Uruguai','Uzbequistão','Áustria'];
+  const optsHtml=SELECOES.map(t=>`<option value="${t}">${t}</option>`).join('');
   let h='';
   jogos.sort((a,b)=>new Date(a.dt)-new Date(b.dt)).forEach(j=>{
     const r1=j.res?.g1??'', r2=j.res?.g2??'';
     const isLive=j.live||false;
     const isFim=r1!==''&&r2!=='';
     const status=isLive?'live':isFim?'fim':'aberto';
+    const isMataMata=j.fase!=='Grupos';
+    const faseLabel={'R32':'Rodada de 32','Oitavas':'Oitavas de Final','Quartas':'Quartas de Final','Semifinal':'Semifinal','3º Lugar':'3º Lugar','Final':'🏆 Final'};
     h+=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.6rem .75rem;margin-bottom:.5rem">
-      <div style="font-size:.79rem;font-weight:600;margin-bottom:.45rem">${fl(j.t1)} ${j.t1} × ${j.t2} ${fl(j.t2)}</div>
+      ${isMataMata?`<div style="font-size:.68rem;font-weight:700;color:var(--amarelo);text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem">${faseLabel[j.fase]||j.fase} · ${fdata(j.dt)} ${fhora(j.dt)}</div>`:''}
+      ${isMataMata?`
+      <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.45rem;flex-wrap:wrap">
+        <select id="t1-${j.id}" style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:.3rem .5rem;color:var(--text);font-size:.78rem;font-family:'Inter',sans-serif;flex:1">
+          <option value="">-- Time 1 --</option>${optsHtml.replace(`value="${j.t1}"`,`value="${j.t1}" selected`)}
+        </select>
+        <span style="color:var(--muted);font-weight:700">×</span>
+        <select id="t2-${j.id}" style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:.3rem .5rem;color:var(--text);font-size:.78rem;font-family:'Inter',sans-serif;flex:1">
+          <option value="">-- Time 2 --</option>${optsHtml.replace(`value="${j.t2}"`,`value="${j.t2}" selected`)}
+        </select>
+        <button class="btn btn-o btn-sm" onclick="salvarTimes('${j.id}')">👥 Times</button>
+      </div>`
+      :`<div style="font-size:.79rem;font-weight:600;margin-bottom:.45rem">${fl(j.t1)} ${j.t1} × ${j.t2} ${fl(j.t2)}</div>`}
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
         <select id="st-${j.id}" style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:.3rem .5rem;color:var(--text);font-size:.78rem;font-family:'Inter',sans-serif">
           <option value="aberto" ${status==='aberto'?'selected':''}>⏳ Aguardando</option>
@@ -997,6 +1141,17 @@ function rAdmJ(){
   });
   el.innerHTML=h||'<p class="ht">Nenhum jogo.</p>';
 }
+function salvarTimes(id){
+  const j=ST.jogos.find(x=>x.id===id);if(!j)return;
+  const t1=document.getElementById('t1-'+id)?.value;
+  const t2=document.getElementById('t2-'+id)?.value;
+  if(!t1||!t2){toast('Escolha os dois times!','e');return;}
+  j.t1=t1;j.t2=t2;
+  save();rAdmJ();renderJogos();renderBracket();
+  toast('✅ Times atualizados: '+t1+' × '+t2);
+}
+window.salvarTimes=salvarTimes;
+
 function salvarRes(id){
   const j=ST.jogos.find(x=>x.id===id);if(!j)return;
   const g1=document.getElementById('rr-'+id+'-1').value;
