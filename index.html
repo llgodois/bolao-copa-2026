@@ -313,9 +313,9 @@ select option{background:#1a2235;}
 
 <div id="toast"></div>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, get, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
 
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyDGY0VpRrLbInjusPKRAHUx2nNi_foTArQ",
@@ -469,6 +469,7 @@ let ST={nome:'Bolão da Copa 2026 Salada',pw:'copa2026',jogos:[],palpites:[],las
 
 const GRUPOS = ['A','B','C','D','E','F','G','H','I','J','K','L'];
 const FO=['Grupos','R32','Oitavas','Quartas','Semifinal','3º Lugar','Final'];
+const FL2={Grupos:'Fase de Grupos',R32:'Rodada de 32',Oitavas:'Oitavas de Final',Quartas:'Quartas de Final',Semifinal:'Semifinais','3º Lugar':'3º Lugar',Final:'🏆 Grande Final'};
 const FASE_LABEL={R32:'Rodada de 32',Oitavas:'Oitavas de Final',Quartas:'Quartas de Final',Semifinal:'Semifinais','3º Lugar':'3º Lugar',Final:'🏆 Final'};
 
 // ════════════════════════════════════════════
@@ -476,13 +477,13 @@ const FASE_LABEL={R32:'Rodada de 32',Oitavas:'Oitavas de Final',Quartas:'Quartas
 // ════════════════════════════════════════════
 async function initFirebase(){
   try{
-    app=initializeApp(FIREBASE_CONFIG);
-    db=getDatabase(app);
-    dbRef=ref(db,'bolao26');
+    app=firebase.initializeApp(FIREBASE_CONFIG);
+    db=firebase.database();
+    dbRef=db.ref('bolao26');
     fbOk=true;
     setSS('spin','Conectando...');
     // Lê uma vez — sem ficar escutando mudanças (evita sobrescrever dados)
-    const snap = await get(dbRef);
+    const snap = await dbRef.once('value');
     const data = snap.val();
     if(data && (data.palpites?.length > 0 || data.jogos?.length > 0)){
       // Dados existem — carrega sem sobrescrever nunca
@@ -505,7 +506,7 @@ async function initFirebase(){
 }
 async function fbSave(){
   if(!fbOk){saveLocal();return;}
-  try{await set(dbRef,ST);}catch(e){saveLocal();}
+  try{await dbRef.set(ST);}catch(e){saveLocal();}
 }
 function loadLocal(){
   try{const s=localStorage.getItem('bolao26v4');if(s){const l=JSON.parse(s);ST={...ST,...l};}}catch(e){}
