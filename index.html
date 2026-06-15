@@ -595,9 +595,9 @@ function jogoAberto(j){
   return new Date(j.dt)>new Date();
 }
 function jogoStatus(j){
+  if(j.res&&j.res.g1!==''&&!j.live)return'fim';
   if(j.live)return'live';
-  if(j.res&&j.res.g1!=='')return'fim';
-  if(j.dt&&new Date(j.dt)<=new Date())return'andamento';
+  if(j.dt&&new Date(j.dt)<=new Date()&&(!j.res||j.res.g1===''))return'live'; // horário passou = ao vivo automático
   return'aberto';
 }
 
@@ -1148,33 +1148,81 @@ window.rRnk=rRnk;
 function showDet(nome){
   document.getElementById('det')?.remove();
   const res=ST.jogos.filter(j=>j.res&&j.res.g1!=='');
-  let h=`<h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--amarelo);margin-bottom:.9rem">📊 ${esc(nome)}</h3>`;
+
+  // Categoriza jogos
+  const grupos={exato:[],vencedor:[],errou:[],semPalpite:[]};
   res.forEach(j=>{
     const pal=ST.palpites.find(x=>x.nome.toLowerCase()===nome.toLowerCase()&&x.jid===j.id);
     const r=pal?pts(pal.g1,pal.g2,j.res.g1,j.res.g2):null;
-    const bc=r===3?'by':r===1?'bg':r===0?'br':'';
-    h+=`<div style="background:var(--card2);border-radius:8px;padding:.55rem .75rem;margin-bottom:.4rem;border-left:3px solid ${r===3?'var(--amarelo)':r===1?'var(--verde)':r===0?'#dc2626':'var(--border)'}">
-      <div style="font-size:.8rem;font-weight:600;margin-bottom:.3rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fl(j.t1)} ${j.t1} × ${j.t2} ${fl(j.t2)}</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
-        <div style="font-size:.75rem;color:var(--muted)">
+    const item={j,pal,r};
+    if(r===3)grupos.exato.push(item);
+    else if(r===1)grupos.vencedor.push(item);
+    else if(r===0)grupos.errou.push(item);
+    else grupos.semPalpite.push(item);
+  });
+
+  const ent=calcRnk().find(x=>x.nome.toLowerCase()===nome.toLowerCase());
+
+  function renderGrupo(items){
+    return items.map(({j,pal,r})=>{
+      const bc=r===3?'by':r===1?'bg':r===0?'br':'';
+      return `<div style="background:var(--bg);border-radius:8px;padding:.5rem .75rem;margin-bottom:.35rem;border-left:3px solid ${r===3?'var(--amarelo)':r===1?'var(--verde)':r===0?'#dc2626':'var(--border)'}">
+        <div style="font-size:.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fl(j.t1)} ${j.t1} × ${j.t2} ${fl(j.t2)}</div>
+        <div style="font-size:.73rem;color:var(--muted);margin-top:2px">
           Palpite: <strong style="color:var(--text)">${pal?pal.g1+'×'+pal.g2:'—'}</strong>
           &nbsp;·&nbsp; Resultado: <strong style="color:var(--amarelo)">${j.res.g1}×${j.res.g2}</strong>
         </div>
-        <div style="flex-shrink:0">${r!==null?`<span class="badge ${bc}" style="font-size:.75rem;padding:3px 9px">${r===3?'+3 pts':r===1?'+1 pt':'0 pts'}</span>`:'<span style="color:var(--muted);font-size:.75rem">sem palpite</span>'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function categoriaHTML(id, label, color, items, badge){
+    if(!items.length) return '';
+    return `<div style="margin-bottom:.5rem;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div onclick="toggleDetGrupo('${id}')" style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;background:var(--card2);cursor:pointer;user-select:none">
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <span class="badge ${badge}" style="font-size:.78rem;padding:3px 10px">${label}</span>
+          <span style="font-size:.82rem;color:var(--muted)">${items.length} jogo${items.length!==1?'s':''}</span>
+        </div>
+        <span id="arr-det-${id}" style="color:var(--muted);font-size:.8rem;transition:transform .2s">▼</span>
+      </div>
+      <div id="det-grp-${id}" style="display:none;padding:.6rem .75rem">
+        ${renderGrupo(items)}
       </div>
     </div>`;
-  });
-  const ent=calcRnk().find(x=>x.nome.toLowerCase()===nome.toLowerCase());
-  if(ent)h+=`<div style="display:flex;gap:1.4rem;justify-content:center;margin-top:.9rem;padding:.9rem;background:var(--card2);border-radius:8px;flex-wrap:wrap">
-    <div style="text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--amarelo)">${ent.p}</div><div class="ht">pontos</div></div>
-    <div style="text-align:center"><div style="font-size:1.25rem;font-weight:700">${ent.ex}</div><div class="ht">exatos</div></div>
-    <div style="text-align:center"><div style="font-size:1.25rem;font-weight:700">${ent.vc}</div><div class="ht">vencedor</div></div>
+  }
+
+  let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--amarelo)">📊 ${esc(nome)}</h3>
+    ${ent?`<div style="display:flex;gap:1rem;align-items:center">
+      <div style="text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--amarelo);line-height:1">${ent.p}</div><div class="ht">pts</div></div>
+      <div style="text-align:center"><div style="font-weight:700">${ent.ex}</div><div class="ht" style="font-size:.65rem">exatos</div></div>
+      <div style="text-align:center"><div style="font-weight:700">${ent.vc}</div><div class="ht" style="font-size:.65rem">venc.</div></div>
+      <div style="text-align:center"><div style="font-weight:700">${ent.er}</div><div class="ht" style="font-size:.65rem">erros</div></div>
+    </div>`:''}
   </div>`;
+
+  h += categoriaHTML('ex'+nome.replace(/\W/g,''), '+3 pts — Placar exato', 'var(--amarelo)', grupos.exato, 'by');
+  h += categoriaHTML('vc'+nome.replace(/\W/g,''), '+1 pt — Vencedor/empate', 'var(--verde)', grupos.vencedor, 'bg');
+  h += categoriaHTML('er'+nome.replace(/\W/g,''), '0 pts — Errou', '#dc2626', grupos.errou, 'br');
+  h += categoriaHTML('sp'+nome.replace(/\W/g,''), 'Sem palpite', 'var(--muted)', grupos.semPalpite, 'bb');
+
   document.getElementById('rlist').insertAdjacentHTML('afterend',
     `<div id="det" class="card" style="margin-top:1rem;position:relative">
-      <button onclick="document.getElementById('det').remove()" style="position:absolute;top:1rem;right:1rem;background:transparent;border:none;color:var(--muted);cursor:pointer">✕</button>${h}</div>`);
+      <button onclick="document.getElementById('det').remove()" style="position:absolute;top:.75rem;right:.75rem;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:1rem">✕</button>
+      ${h}</div>`);
   document.getElementById('det').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+
+function toggleDetGrupo(id){
+  const det=document.getElementById('det-grp-'+id);
+  const arr=document.getElementById('arr-det-'+id);
+  if(!det)return;
+  const open=det.style.display==='none';
+  det.style.display=open?'block':'none';
+  if(arr)arr.style.transform=open?'rotate(180deg)':'';
+}
+window.toggleDetGrupo=toggleDetGrupo;
 window.showDet=showDet;
 
 function rAll(){
@@ -1186,10 +1234,11 @@ function rAll(){
   const aoVivo=ST.jogos.filter(j=>jogoStatus(j)==='live'||jogoStatus(j)==='andamento').sort((a,b)=>new Date(a.dt)-new Date(b.dt));
   const encerrados=ST.jogos.filter(j=>jogoStatus(j)==='fim').sort((a,b)=>new Date(a.dt)-new Date(b.dt));
 
-  let h=`<div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1rem">
-    <button class="tab ${aoVivo.length?'active':encerrados.length?'':'active'}" onclick="switchPalpitesTab('live')" id="ptab-live" style="font-size:.78rem;padding:.65rem 1rem">🔴 Ao vivo (${aoVivo.length})</button>
-    <button class="tab ${!aoVivo.length&&encerrados.length?'active':''}" onclick="switchPalpitesTab('fim')" id="ptab-fim" style="font-size:.78rem;padding:.65rem 1rem">✅ Encerrados (${encerrados.length})</button>
-    <button class="tab" onclick="switchPalpitesTab('prox')" id="ptab-prox" style="font-size:.78rem;padding:.65rem 1rem">🕐 Próximos (${proximos.length})</button>
+  const tabAtiva=aoVivo.length?'live':encerrados.length?'fim':'prox';
+  let h=`<div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1rem;overflow-x:auto">
+    <button class="tab ${tabAtiva==='live'?'active':''}" onclick="switchPalpitesTab('live')" id="ptab-live" style="font-size:.72rem;padding:.6rem .75rem;white-space:nowrap;flex-shrink:0">🔴 (${aoVivo.length})</button>
+    <button class="tab ${tabAtiva==='fim'?'active':''}" onclick="switchPalpitesTab('fim')" id="ptab-fim" style="font-size:.72rem;padding:.6rem .75rem;white-space:nowrap;flex-shrink:0">✅ Enc. (${encerrados.length})</button>
+    <button class="tab" onclick="switchPalpitesTab('prox')" id="ptab-prox" style="font-size:.72rem;padding:.6rem .75rem;white-space:nowrap;flex-shrink:0">🕐 Próx. (${proximos.length})</button>
   </div>`;
 
   // AO VIVO
@@ -1372,8 +1421,8 @@ function rAdmJ(){
   let h='';
   jogos.sort((a,b)=>new Date(a.dt)-new Date(b.dt)).forEach(j=>{
     const r1=j.res?.g1??'', r2=j.res?.g2??'';
-    const isLive=j.live||false;
-    const isFim=r1!==''&&r2!=='';
+    const isLive=j.live||(jogoStatus(j)==='live');
+    const isFim=(r1!==''&&r2!=='')&&!isLive;
     const status=isLive?'live':isFim?'fim':'aberto';
     const isMataMata=j.fase!=='Grupos';
     const faseLabel={'R32':'Rodada de 32','Oitavas':'Oitavas de Final','Quartas':'Quartas de Final','Semifinal':'Semifinal','3º Lugar':'3º Lugar','Final':'🏆 Final'};
