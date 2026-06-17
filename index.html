@@ -356,6 +356,8 @@ select option{background:#1a2235;}
             <div class="sec">Manutenção</div>
       <p class="ht" style="margin-bottom:.7rem">Atualiza datas e dados dos jogos a partir do código, <strong>sem apagar palpites ou resultados</strong>.</p>
       <button class="btn btn-o btn-sm" onclick="sincronizarJogos()">🔄 Sincronizar datas dos jogos</button>
+      <p class="ht" style="margin:.7rem 0">Unifica participantes duplicados por maiúscula/minúscula (ex: "João" e "joão").</p>
+      <button class="btn btn-o btn-sm" onclick="mesclarDuplicados()">🔗 Mesclar nomes duplicados</button>
 
       <hr class="divider">
       <div class="sec" style="color:#f87171">Perigo</div>
@@ -1182,7 +1184,7 @@ window.renderPalpitar=renderPalpitar;
 // SALVAR PALPITES — com verificação de nome
 // ════════════════════════════════════════════
 async function salvarPalpites(){
-  const nome=document.getElementById('inp-nome').value.trim();
+  let nome=document.getElementById('inp-nome').value.trim();
   if(!nome){toast('Digite seu nome!','e');return;}
 
   // Coleta palpites preenchidos
@@ -1196,23 +1198,24 @@ async function salvarPalpites(){
   });
   if(!novos.length){toast('Preencha ao menos um placar!','e');return;}
 
-  // Verifica se nome já existe de outro "dono"
+  // Verifica se nome já existe com grafia diferente (case-insensitive)
   const nomesExistentes=[...new Set(ST.palpites.map(p=>p.nome))];
   const nomeIgual=nomesExistentes.find(n=>n.toLowerCase()===nome.toLowerCase()&&n!==nome);
-  const jaExiste=nomesExistentes.find(n=>n.toLowerCase()===nome.toLowerCase());
 
-  // Se o nome existe com grafia diferente, avisa
+  // Se o nome existe com grafia diferente, avisa e USA a grafia já existente
   if(nomeIgual){
     const ok=await confirmar(
       'Nome similar encontrado',
-      `Já existe "${nomeIgual}" no bolão. Você é a mesma pessoa? Se sim, seus palpites serão atualizados. Se não, use um apelido diferente.`,
+      `Já existe "${nomeIgual}" no bolão. Você é a mesma pessoa? Se sim, seus palpites serão atualizados usando a grafia "${nomeIgual}".`,
       'Sim, sou eu — salvar',
       'Não, cancelar'
     );
     if(!ok)return;
+    nome=nomeIgual; // sempre usa a grafia já existente, evita duplicar
+    document.getElementById('inp-nome').value=nome;
   }
 
-  // Salva
+  // Salva (comparação sempre case-insensitive)
   novos.forEach(({jid,g1,g2})=>{
     ST.palpites=ST.palpites.filter(x=>!(x.nome.toLowerCase()===nome.toLowerCase()&&x.jid===jid));
     ST.palpites.push({nome,jid,g1,g2});
@@ -1610,6 +1613,29 @@ function filtroAdmin(f){
 }
 window.filtroAdmin=filtroAdmin;
 
+const PARTICIPANTES_FIXOS=['Adriano Marreta','Ângela','Astrobaldo','Claude','Felipe Ribeiro','Gustavo Ferreira','Juliana Bandeira','Júnior Meneses / Gelado','llgodois','Marcos Ernesto','Matheus Godois','Raquel B','Vini','Yago Ponkan','Yan /+/'];
+
+function normNome(s){return (s||'').trim().toLowerCase();}
+
+function contarPalpitantes(jid){
+  const quemPalpitou=new Set(ST.palpites.filter(p=>p.jid===jid).map(p=>normNome(p.nome)));
+  return PARTICIPANTES_FIXOS.filter(p=>quemPalpitou.has(normNome(p))).length;
+}
+
+function faltantesHTML(jid){
+  const quemPalpitou=new Set(ST.palpites.filter(p=>p.jid===jid).map(p=>normNome(p.nome)));
+  const faltam=PARTICIPANTES_FIXOS.filter(p=>!quemPalpitou.has(normNome(p)));
+  if(!faltam.length)return '<span style="color:var(--verde)">✅ Todos palpitaram!</span>';
+  return '<strong style="color:#f87171">Faltam:</strong> '+faltam.map(esc).join(', ');
+}
+
+function toggleQuemPalpitou(jid){
+  const el=document.getElementById('quem-'+jid);
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+window.toggleQuemPalpitou=toggleQuemPalpitou;
+
 function rAdmJ(){
   const el=document.getElementById('adm-jogos');
   const hoje=new Date();
@@ -1644,7 +1670,10 @@ function rAdmJ(){
       ${isMataMata?`<div style="font-size:.68rem;font-weight:700;color:var(--amarelo);text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem">${faseLabel[j.fase]||j.fase} · ${fdata(j.dt)} ${fhora(j.dt)}</div>`:''}
       <div style="font-size:.68rem;color:var(--muted);margin-bottom:.35rem;display:flex;align-items:center;justify-content:space-between">
         <span>📅 ${fdata(j.dt)} ${fhora(j.dt)}</span>
-        <span class="badge ${ST.palpites.filter(p=>p.jid===j.id).length>0?'bg':'br'}">${ST.palpites.filter(p=>p.jid===j.id).length} palpite(s)</span>
+        <span class="badge ${PARTICIPANTES_FIXOS.length-contarPalpitantes(j.id)>0?'br':'bg'}" style="cursor:pointer" onclick="toggleQuemPalpitou('${j.id}')">${contarPalpitantes(j.id)}/${PARTICIPANTES_FIXOS.length} palpitaram ▾</span>
+      </div>
+      <div id="quem-${j.id}" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.5rem .65rem;margin-bottom:.4rem;font-size:.74rem">
+        ${faltantesHTML(j.id)}
       </div>
       ${isMataMata?`
       <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.45rem;flex-wrap:wrap">
@@ -1711,17 +1740,17 @@ function rAdmUsers(){
   nomes.forEach(nome=>{
     const qtd=ST.palpites.filter(p=>p.nome.toLowerCase()===nome.toLowerCase()).length;
     const jogosComRes=ST.jogos.filter(j=>j.res&&j.res.g1!=='');
-    let pts=0;
+    let pontos=0;
     jogosComRes.forEach(j=>{
       const pal=ST.palpites.find(p=>p.nome.toLowerCase()===nome.toLowerCase()&&p.jid===j.id);
       if(!pal)return;
       const r=pts(pal.g1,pal.g2,j.res.g1,j.res.g2);
-      if(r===3)pts+=3;else if(r===1)pts+=1;
+      if(r===3)pontos+=3;else if(r===1)pontos+=1;
     });
     h+=`<div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.6rem .75rem;background:var(--card2);border-radius:8px;margin-bottom:.45rem;flex-wrap:wrap">
       <div>
         <div style="font-weight:600;font-size:.87rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${esc(nome)}</div>
-        <div style="font-size:.72rem;color:var(--muted)">${qtd} palpite(s) · ${pts} pts</div>
+        <div style="font-size:.72rem;color:var(--muted)">${qtd} palpite(s) · ${pontos} pts</div>
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap">
         <button class="btn btn-o btn-sm" onclick="verPalpitesUser('${esc(nome)}')">👁 Ver</button>
@@ -1794,6 +1823,39 @@ function apagarPalpiteJogo(nome,jid){
   toast('✅ Palpite removido.');
 }
 window.apagarPalpiteJogo=apagarPalpiteJogo;
+
+function mesclarDuplicados(){
+  // Agrupa por nome normalizado (lowercase+trim), mantém a grafia do PRIMEIRO encontrado
+  const grupos={};
+  ST.palpites.forEach(p=>{
+    const key=normNome(p.nome);
+    if(!grupos[key])grupos[key]=[];
+    grupos[key].push(p);
+  });
+
+  let totalMesclados=0, palpitesUnificados=[];
+  Object.values(grupos).forEach(lista=>{
+    if(lista.length<=1){palpitesUnificados.push(...lista);return;}
+    // Pega a grafia mais usada/primeira como canônica
+    const grafiaCanonica=lista[0].nome;
+    totalMesclados++;
+    // Para cada jogo, mantém só 1 palpite (o mais recente da lista, todos já têm mesma key)
+    const porJogo={};
+    lista.forEach(p=>{porJogo[p.jid]=p;}); // último sobrescreve
+    Object.values(porJogo).forEach(p=>{
+      palpitesUnificados.push({...p,nome:grafiaCanonica});
+    });
+  });
+
+  if(!totalMesclados){toast('Nenhum nome duplicado encontrado!');return;}
+
+  if(!confirm('Encontrados '+totalMesclados+' nome(s) duplicado(s). Mesclar agora?'))return;
+
+  ST.palpites=palpitesUnificados;
+  save();updSt();rAdmUsers();
+  toast('🔗 '+totalMesclados+' nome(s) mesclado(s) com sucesso!');
+}
+window.mesclarDuplicados=mesclarDuplicados;
 
 function sincronizarJogos(){
   if(!confirm('Atualizar datas e dados dos jogos sem apagar palpites ou resultados?'))return;
