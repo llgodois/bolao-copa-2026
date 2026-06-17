@@ -182,6 +182,14 @@ select option{background:#1a2235;}
 </style>
 </head>
 <body>
+<div id="loading-screen" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem">
+  <div style="font-size:2.5rem">🔥</div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--amarelo);letter-spacing:2px">BOLÃO DA COPA 2026</div>
+  <div style="display:flex;align-items:center;gap:.6rem;color:var(--muted);font-size:.85rem">
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--amarelo);animation:blink 1s infinite"></div>
+    Conectando ao Firebase, aguarde...
+  </div>
+</div>
 <header>
   <div class="logo">
     <div class="logo-icon">🏆</div>
@@ -191,17 +199,29 @@ select option{background:#1a2235;}
     </div>
   </div>
   <div class="hdr-r">
+    <button class="btn btn-o btn-sm" onclick="openMobileMenu()" style="display:none" id="btn-hamburger">☰</button>
     <button class="btn btn-y btn-sm" onclick="showTab('ranking')">🏅 Ranking</button>
     <button class="btn btn-o btn-sm" onclick="openAdmin()">⚙️ Admin</button>
   </div>
 </header>
-<nav class="tabs">
+<nav class="tabs" id="main-tabs">
   <button class="tab" onclick="showTab('jogos')" id="tab-jogos">📅 Jogos</button>
   <button class="tab" onclick="showTab('bracket')" id="tab-bracket">🏆 Mata-mata</button>
   <button class="tab active" onclick="showTab('palpitar')" id="tab-palpitar">✏️ Palpitar</button>
   <button class="tab" onclick="showTab('ranking')" id="tab-ranking">🏅 Ranking</button>
   <button class="tab" onclick="showTab('palpites')" id="tab-palpites">📋 Palpites</button>
 </nav>
+<!-- Mobile menu overlay -->
+<div id="mobile-menu" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:150;align-items:flex-end" onclick="closeMobileMenu()">
+  <div style="background:var(--card);width:100%;border-radius:16px 16px 0 0;padding:1.5rem 1rem;display:flex;flex-direction:column;gap:.5rem" onclick="event.stopPropagation()">
+    <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto .75rem"></div>
+    <button onclick="showTab('jogos');closeMobileMenu()" style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;color:var(--text);font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;text-align:left">📅 Jogos</button>
+    <button onclick="showTab('bracket');closeMobileMenu()" style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;color:var(--text);font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;text-align:left">🏆 Mata-mata</button>
+    <button onclick="showTab('palpitar');closeMobileMenu()" style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;color:var(--text);font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;text-align:left">✏️ Palpitar</button>
+    <button onclick="showTab('ranking');closeMobileMenu()" style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;color:var(--text);font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;text-align:left">🏅 Ranking</button>
+    <button onclick="showTab('palpites');closeMobileMenu()" style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;color:var(--text);font-family:'Inter',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;text-align:left">📋 Palpites</button>
+  </div>
+</div>
 <div class="wrap">
 
 <div class="pg" id="pg-jogos">
@@ -252,6 +272,7 @@ select option{background:#1a2235;}
     <div class="ct">✏️ Registrar Palpites</div>
     <div style="margin-bottom:1rem" class="fg2">
       <div class="fg"><label>Seu nome / apelido</label><input type="text" id="inp-nome" placeholder="Ex: João Silva" maxlength="40" oninput="renderPalpitar()" onchange="renderPalpitar()"/></div>
+      
     </div>
     <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
       <button class="btn btn-y btn-sm" id="view-grupo" onclick="setViewPalpitar('grupo')">📅 Por grupo</button>
@@ -265,7 +286,16 @@ select option{background:#1a2235;}
 
 <div class="pg" id="pg-ranking">
   <div class="card">
-    <div class="ct">🏅 Ranking Geral</div>
+    <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
+      <button class="btn btn-y btn-sm" id="rview-geral" onclick="setRankingView('geral')">🏅 Geral</button>
+      <button class="btn btn-o btn-sm" id="rview-grupo" onclick="setRankingView('grupo')">📊 Por grupo</button>
+    </div>
+    <div id="ranking-grupo-sel" style="display:none;margin-bottom:1rem">
+      <select id="grupo-sel" onchange="renderRankingGrupo(this.value)" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.5rem .85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.87rem">
+        <option value="A">Grupo A</option><option value="B">Grupo B</option><option value="C">Grupo C</option><option value="D">Grupo D</option><option value="E">Grupo E</option><option value="F">Grupo F</option><option value="G">Grupo G</option><option value="H">Grupo H</option><option value="I">Grupo I</option><option value="J">Grupo J</option><option value="K">Grupo K</option><option value="L">Grupo L</option>
+      </select>
+    </div>
+    <div class="ct" id="ranking-title">🏅 Ranking Geral</div>
     <p class="ht" style="margin-bottom:.9rem">
       <span class="chip">✅ Placar exato</span> = 3 pts &nbsp;
       <span class="chip" style="background:rgba(0,156,59,.1);border-color:rgba(0,156,59,.3);color:#4ade80">🎯 Vencedor/empate</span> = 1 pt &nbsp;
@@ -513,38 +543,97 @@ const FASE_LABEL={R32:'Rodada de 32',Oitavas:'Oitavas de Final',Quartas:'Quartas
 // ════════════════════════════════════════════
 // FIREBASE
 // ════════════════════════════════════════════
+function _hideLoading(){const ls=document.getElementById('loading-screen');if(ls)ls.style.display='none';}
+
 async function initFirebase(){
+  // Timeout de segurança: some a tela após 8s independente
+  const safetyTimer=setTimeout(()=>{
+    // Garante que o loading desaparece SEMPRE após 8s, independente do estado
+    _hideLoading();
+    if(!fbOk){
+      ST.jogos=COPA.map(j=>({...j,res:{g1:'',g2:''},live:false}));
+      ST.palpites=[];
+      updSt();renderJogos();renderBracket();
+      setSS('err','Sem conexão');
+    } else {
+      // Firebase conectou mas demorou: garante que a interface foi renderizada
+      updSt();renderJogos();renderBracket();
+    }
+  },8000);
+
   try{
     app=firebase.initializeApp(FIREBASE_CONFIG);
     db=firebase.database();
     dbRef=db.ref('bolao26');
     fbOk=true;
     setSS('spin','Conectando...');
-    // Lê uma vez — sem ficar escutando mudanças (evita sobrescrever dados)
     const snap = await dbRef.once('value');
     const data = snap.val();
     if(data && (data.palpites?.length > 0 || data.jogos?.length > 0)){
-      // Dados existem — carrega sem sobrescrever nunca
       ST = {...ST, ...data};
       if(!ST.jogos || ST.jogos.length === 0){
         ST.jogos = COPA.map(j=>({...j,res:{g1:'',g2:''},live:false}));
       }
     } else {
-      // Banco vazio — inicializa jogos localmente SEM salvar no Firebase
       ST.jogos = COPA.map(j=>({...j,res:{g1:'',g2:''},live:false}));
       ST.palpites = [];
     }
+    clearTimeout(safetyTimer);
     updSt();renderJogos();renderBracket();
     if(document.getElementById('pg-palpitar').classList.contains('on'))renderPalpitar();
     setSS('ok','Firebase 🔥');
+    _hideLoading();
   }catch(e){
+    clearTimeout(safetyTimer);
     setSS('err','Modo local');
+    _hideLoading();
     loadLocal();
+    updSt();renderJogos();renderBracket();
   }
 }
+// LÓGICA DE PROTEÇÃO ANTISOBRESCRITA (EVITA SUMIÇO DE PALPITES)
 async function fbSave(){
   if(!fbOk){saveLocal();return;}
-  try{await dbRef.set(ST);}catch(e){saveLocal();}
+  try{
+    // Sempre busca o estado mais recente do Firebase antes de gravar
+    const snap = await dbRef.once('value');
+    const atual = snap.val() || {};
+    const fbPalpites = atual.palpites || [];
+    // Nome do PARTICIPANTE vem do input, não de ST.nome (que é o nome do bolão)
+    const meuNome = (document.getElementById('inp-nome')?.value||'').trim();
+
+    if(!meuNome){
+      // Sem nome de participante, salva normalmente (admin ou primeiro uso)
+      await dbRef.set(ST);
+      return;
+    }
+
+    // Isola os registros de TODOS os outros usuários que estão no Firebase
+    const palpitesDosOutros = fbPalpites.filter(p =>
+      p.nome.toLowerCase() !== meuNome.toLowerCase()
+    );
+
+    // Isola apenas os meus próprios palpites locais
+    const meusPalpitesLocais = ST.palpites.filter(p =>
+      p.nome.toLowerCase() === meuNome.toLowerCase()
+    );
+
+    // Reconstrói a lista: preserva os outros + inclui os meus atualizados
+    ST.palpites = [...palpitesDosOutros, ...meusPalpitesLocais];
+
+    // Protege placares oficiais: não sobrescreve resultado já definido pelo admin
+    if(atual.jogos){
+      atual.jogos.forEach(fbJ => {
+        const meuJ = ST.jogos.find(j => j.id === fbJ.id);
+        if(meuJ && fbJ.res && fbJ.res.g1 !== ''){
+          meuJ.res = fbJ.res;
+          meuJ.live = fbJ.live;
+        }
+      });
+    }
+
+    await dbRef.set(ST);
+  }catch(e){saveLocal();}
 }
 function loadLocal(){
   try{const s=localStorage.getItem('bolao26v4');if(s){const l=JSON.parse(s);ST={...ST,...l};}}catch(e){}
@@ -558,7 +647,12 @@ function save(){fbSave();}
 // API SYNC
 // ════════════════════════════════════════════
 let syncT=null;
-function setSS(t,txt){}
+function setSS(t,txt){
+  const dot=document.querySelector('.dot');
+  const pill=document.querySelector('.pill');
+  if(dot){dot.className='dot '+t;}
+  if(pill){const span=pill.querySelector('span:last-child');if(span)span.textContent=txt;}
+}
 
 function showTab(t){
   document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
@@ -572,6 +666,10 @@ function showTab(t){
   if(t==='jogos')renderJogos();
 }
 window.showTab=showTab;
+function openMobileMenu(){document.getElementById('mobile-menu').style.display='flex';}
+function closeMobileMenu(){document.getElementById('mobile-menu').style.display='none';}
+window.openMobileMenu=openMobileMenu;
+window.closeMobileMenu=closeMobileMenu;
 
 function updSt(){
   document.getElementById('sj').textContent=ST.jogos.length;
@@ -597,7 +695,12 @@ function jogoAberto(j){
 function jogoStatus(j){
   if(j.res&&j.res.g1!==''&&!j.live)return'fim';
   if(j.live)return'live';
-  if(j.dt&&new Date(j.dt)<=new Date()&&(!j.res||j.res.g1===''))return'live'; // horário passou = ao vivo automático
+  // Horário passou e não tem resultado = ao vivo automático (até 130 min depois)
+  if(j.dt){
+    const now=new Date(), start=new Date(j.dt);
+    const diff=(now-start)/60000;
+    if(diff>=0&&diff<=130&&(!j.res||j.res.g1===''))return'live';
+  }
   return'aberto';
 }
 
@@ -915,7 +1018,9 @@ function renderPalpitar(){
               <span>×</span>
               <input type="number" min="0" max="99" placeholder="?" value="${p?p.g2:''}" id="pp-${j.id}-2" ${!aberto?'disabled':''}/>
             </div>
-            <div class="ji">${fhora(j.dt)}${j.gr?' · Gr.'+j.gr:' · '+j.fase}${j.city?' · '+j.city:''}</div>
+            <div class="ji">${fhora(j.dt)}${j.gr?' · Gr.'+j.gr:' · '+j.fase}${j.city?' · '+j.city:''}
+              ${aberto?`<span id="cd-${j.id}" style="color:var(--amarelo);font-weight:600;margin-left:4px"></span>`:''}
+            </div>
             ${lockMsg?`<div class="locked-msg">${lockMsg}</div>`:''}
           </div>
           <div class="jt2 r">${j.t2} ${fl(j.t2)}</div>
@@ -931,6 +1036,7 @@ function renderPalpitar(){
       if(i2&&val.g2!==''){i2.value=val.g2;}
     });
     updateFAB();
+    iniciarCountdown();
     return;
   }
 
@@ -947,10 +1053,16 @@ function renderPalpitar(){
       jogosGr.forEach(j=>{
         const aberto=jogoAberto(j);
         const st=jogoStatus(j);
-        const p=ST.palpites.find(x=>x.nome.toLowerCase()===nome.toLowerCase()&&x.jid===j.id);
+        const p=nome?ST.palpites.find(x=>x.nome.toLowerCase()===nome.toLowerCase()&&x.jid===j.id):null;
         if(aberto)temAberto=true;
-        const lockMsg=st==='live'?'🔴 Ao vivo':st==='fim'?'Encerrado':st==='andamento'?'⏰ Iniciado':'';
-        h+=`<div class="jogo-row" style="${!aberto?'opacity:.55':''}">
+        const isFim=st==='fim';
+        const isLive=st==='live'||st==='andamento';
+        const r=isFim&&p?pts(p.g1,p.g2,j.res.g1,j.res.g2):null;
+        const bc=r===3?'by':r===1?'bg':r===0?'br':'';
+        h+=`<div class="jogo-row" style="${
+          isFim?'opacity:.5;background:rgba(0,0,0,.15)':
+          isLive?'background:rgba(239,68,68,.06);border-left:2px solid rgba(239,68,68,.5)':''
+        }">
           <div class="jt">${fl(j.t1)} ${j.t1}</div>
           <div class="jm">
             ${aberto
@@ -958,10 +1070,15 @@ function renderPalpitar(){
                   <input type="number" min="0" max="99" placeholder="?" value="${p?p.g1:''}" id="pp-${j.id}-1" style="width:38px;padding:.28rem"/>
                   <span style="color:var(--muted);font-weight:700">×</span>
                   <input type="number" min="0" max="99" placeholder="?" value="${p?p.g2:''}" id="pp-${j.id}-2" style="width:38px;padding:.28rem"/>
-                </div>`
-              : `<div style="font-size:.8rem;color:var(--muted);font-weight:600">${lockMsg}</div>`
+                </div>
+                <div style="font-size:.62rem;color:var(--muted)">${fdata(j.dt)} ${fhora(j.dt)}</div>`
+              : isFim
+              ? `<div style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--amarelo);letter-spacing:1px;line-height:1">${j.res.g1}×${j.res.g2}</div>
+                 <div style="font-size:.65rem;margin-top:2px">${p?`Seu palpite: <strong>${p.g1}×${p.g2}</strong> <span class="badge ${bc}">${r===3?'+3':r===1?'+1':'0'}</span>`:'<span style="color:var(--muted)">sem palpite</span>'}</div>
+                 <div style="font-size:.6rem;color:var(--muted);margin-top:1px">✓ Encerrado</div>`
+              : `<div style="font-size:.75rem;color:#f87171;font-weight:600">${isLive?'🔴 Ao vivo':'⏰ Iniciado'}</div>
+                 <div style="font-size:.62rem;color:var(--muted)">${fdata(j.dt)} ${fhora(j.dt)}</div>`
             }
-            <div class="hora" style="font-size:.62rem;color:var(--muted)">${fdata(j.dt)} ${fhora(j.dt)}</div>
           </div>
           <div class="jt r">${j.t2} ${fl(j.t2)}</div>
         </div>`;
@@ -1034,6 +1151,31 @@ function updateFAB(){
   fab.classList.toggle('has-palpites',nome.length>0);
 }
 window.updateFAB=updateFAB;
+
+let _cdTimer=null;
+function iniciarCountdown(){
+  clearInterval(_cdTimer);
+  function tick(){
+    const now=new Date();
+    ST.jogos.forEach(j=>{
+      const el=document.getElementById('cd-'+j.id);
+      if(!el)return;
+      if(!j.dt){el.textContent='';return;}
+      const diff=new Date(j.dt)-now;
+      if(diff<=0){el.textContent='';return;}
+      const h=Math.floor(diff/3600000);
+      const m=Math.floor((diff%3600000)/60000);
+      if(h>24){const d=Math.floor(h/24);el.textContent='· Fecha em '+d+'d '+(h%24)+'h';}
+      else if(h>0){el.textContent='· Fecha em '+h+'h '+m+'min';}
+      else if(m>0){el.textContent='· Fecha em '+m+'min';}
+      else{el.textContent='· Fechando...';}
+    });
+  }
+  tick();
+  _cdTimer=setInterval(tick,60000);
+}
+window.iniciarCountdown=iniciarCountdown;
+
 window.renderPalpitar=renderPalpitar;
 
 // ════════════════════════════════════════════
@@ -1115,6 +1257,72 @@ function calcRnk(){
     return{nome,p,ex,vc,er};
   }).sort((a,b)=>b.p-a.p||b.ex-a.ex);
 }
+let _rankingView='geral';
+let _rankingGrupo='A';
+
+function setRankingView(v){
+  _rankingView=v;
+  document.getElementById('rview-geral').className='btn btn-'+(v==='geral'?'y':'o')+' btn-sm';
+  document.getElementById('rview-grupo').className='btn btn-'+(v==='grupo'?'y':'o')+' btn-sm';
+  document.getElementById('ranking-grupo-sel').style.display=v==='grupo'?'block':'none';
+  if(v==='geral'){
+    document.getElementById('ranking-title').textContent='🏅 Ranking Geral';
+    rRnk();
+  } else {
+    const sel=document.querySelector('#ranking-grupo-sel select');
+    renderRankingGrupo(sel?sel.value:'A');
+  }
+}
+window.setRankingView=setRankingView;
+
+function renderRankingGrupo(gr){
+  _rankingGrupo=gr;
+  document.getElementById('ranking-title').textContent='📊 Ranking — Grupo '+gr;
+  const el=document.getElementById('rlist');
+  const jogosGr=ST.jogos.filter(j=>j.fase==='Grupos'&&j.gr===gr&&j.res&&j.res.g1!=='');
+  if(!jogosGr.length){
+    el.innerHTML='<div class="empty"><div class="ei">📊</div><p>Nenhum jogo encerrado no Grupo '+gr+' ainda.</p></div>';
+    return;
+  }
+  const nomes=[...new Set(ST.palpites.map(p=>p.nome))];
+  const ranking=nomes.map(nome=>{
+    let p=0,ex=0,vc=0,er=0;
+    jogosGr.forEach(j=>{
+      const pal=ST.palpites.find(x=>x.nome.toLowerCase()===nome.toLowerCase()&&x.jid===j.id);
+      if(!pal)return;
+      const r=pts(pal.g1,pal.g2,j.res.g1,j.res.g2);
+      if(r===3){p+=3;ex++;}else if(r===1){p+=1;vc++;}else if(r===0)er++;
+    });
+    return{nome,p,ex,vc,er};
+  }).sort((a,b)=>b.p-a.p||b.ex-a.ex);
+
+  const mx=ranking[0]?.p||1;
+  let h='';
+  ranking.forEach((x,i)=>{
+    const pc=i===0?'p1':i===1?'p2':i===2?'p3':'pn';
+    const pct=Math.round((x.p/mx)*100);
+    h+=`<div onclick="showDet('${esc(x.nome)}')" style="display:flex;align-items:center;gap:.75rem;padding:.75rem .9rem;border-radius:10px;background:var(--card2);margin-bottom:.5rem;cursor:pointer;border:1px solid var(--border)">
+      <span class="pos ${pc}" style="flex-shrink:0">${i+1}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.nome)}</div>
+        <div style="display:flex;gap:.4rem;margin-top:4px;flex-wrap:wrap">
+          <span class="badge by">🎯 ${x.ex}</span>
+          <span class="badge bg">✅ ${x.vc}</span>
+          <span class="badge br">❌ ${x.er}</span>
+        </div>
+        <div class="pb" style="margin-top:5px"><div class="pbi" style="width:${pct}%"></div></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--amarelo);line-height:1">${x.p}</div>
+        <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase">pts</div>
+      </div>
+    </div>`;
+  });
+  h+=`<p class="ht" style="margin-top:.65rem;text-align:center">Toque para ver detalhes · ${jogosGr.length} jogo(s) encerrado(s)</p>`;
+  el.innerHTML=h;
+}
+window.renderRankingGrupo=renderRankingGrupo;
+
 function rRnk(){
   const el=document.getElementById('rlist');
   const rk=calcRnk();
@@ -1193,7 +1401,9 @@ function showDet(nome){
   }
 
   let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-    <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--amarelo)">📊 ${esc(nome)}</h3>
+    <div>
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--amarelo);margin-bottom:2px">📊 ${esc(nome)}</h3>
+    </div>
     ${ent?`<div style="display:flex;gap:1rem;align-items:center">
       <div style="text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--amarelo);line-height:1">${ent.p}</div><div class="ht">pts</div></div>
       <div style="text-align:center"><div style="font-weight:700">${ent.ex}</div><div class="ht" style="font-size:.65rem">exatos</div></div>
@@ -1421,13 +1631,21 @@ function rAdmJ(){
   let h='';
   jogos.sort((a,b)=>new Date(a.dt)-new Date(b.dt)).forEach(j=>{
     const r1=j.res?.g1??'', r2=j.res?.g2??'';
-    const isLive=j.live||(jogoStatus(j)==='live');
+    const autoLive=jogoStatus(j)==='live';
+    const isLive=j.live||autoLive;
     const isFim=(r1!==''&&r2!=='')&&!isLive;
     const status=isLive?'live':isFim?'fim':'aberto';
+    // Se auto-live e sem placar, mostra 0x0
+    const r1show=isLive&&r1===''?'0':r1;
+    const r2show=isLive&&r2===''?'0':r2;
     const isMataMata=j.fase!=='Grupos';
     const faseLabel={'R32':'Rodada de 32','Oitavas':'Oitavas de Final','Quartas':'Quartas de Final','Semifinal':'Semifinal','3º Lugar':'3º Lugar','Final':'🏆 Final'};
     h+=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.6rem .75rem;margin-bottom:.5rem">
       ${isMataMata?`<div style="font-size:.68rem;font-weight:700;color:var(--amarelo);text-transform:uppercase;letter-spacing:1px;margin-bottom:.35rem">${faseLabel[j.fase]||j.fase} · ${fdata(j.dt)} ${fhora(j.dt)}</div>`:''}
+      <div style="font-size:.68rem;color:var(--muted);margin-bottom:.35rem;display:flex;align-items:center;justify-content:space-between">
+        <span>📅 ${fdata(j.dt)} ${fhora(j.dt)}</span>
+        <span class="badge ${ST.palpites.filter(p=>p.jid===j.id).length>0?'bg':'br'}">${ST.palpites.filter(p=>p.jid===j.id).length} palpite(s)</span>
+      </div>
       ${isMataMata?`
       <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.45rem;flex-wrap:wrap">
         <select id="t1-${j.id}" style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:.3rem .5rem;color:var(--text);font-size:.78rem;font-family:'Inter',sans-serif;flex:1">
@@ -1447,9 +1665,9 @@ function rAdmJ(){
           <option value="fim" ${status==='fim'?'selected':''}>✅ Concluído</option>
         </select>
         <div class="ri">
-          <input type="number" min="0" max="99" value="${r1}" placeholder="?" id="rr-${j.id}-1" style="width:42px"/>
+          <input type="number" min="0" max="99" value="${r1show}" placeholder="0" id="rr-${j.id}-1" style="width:42px"/>
           <span style="color:var(--muted);font-weight:700">×</span>
-          <input type="number" min="0" max="99" value="${r2}" placeholder="?" id="rr-${j.id}-2" style="width:42px"/>
+          <input type="number" min="0" max="99" value="${r2show}" placeholder="0" id="rr-${j.id}-2" style="width:42px"/>
         </div>
         <button class="btn btn-g btn-sm" onclick="salvarRes('${j.id}')">💾 Salvar</button>
       </div>
@@ -1497,7 +1715,7 @@ function rAdmUsers(){
     jogosComRes.forEach(j=>{
       const pal=ST.palpites.find(p=>p.nome.toLowerCase()===nome.toLowerCase()&&p.jid===j.id);
       if(!pal)return;
-      const r=pts_(pal.g1,pal.g2,j.res.g1,j.res.g2);
+      const r=pts(pal.g1,pal.g2,j.res.g1,j.res.g2);
       if(r===3)pts+=3;else if(r===1)pts+=1;
     });
     h+=`<div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.6rem .75rem;background:var(--card2);border-radius:8px;margin-bottom:.45rem;flex-wrap:wrap">
@@ -1515,14 +1733,7 @@ function rAdmUsers(){
 }
 window.rAdmUsers=rAdmUsers;
 
-function pts_(p1,p2,r1,r2){
-  if(r1===''||r2===''||r1==null||r2==null)return null;
-  const a=parseInt(p1),b=parseInt(p2),c=parseInt(r1),d=parseInt(r2);
-  if(isNaN(a)||isNaN(b))return null;
-  if(a===c&&b===d)return 3;
-  const pv=a>b?1:a<b?-1:0,rv=c>d?1:c<d?-1:0;
-  return pv===rv?1:0;
-}
+// pts_ removida: use pts() que é idêntica
 
 function apagarUsuario(nome){
   confirmar(
@@ -1551,7 +1762,7 @@ function verPalpitesUser(nome){
   jogosComPalpite.sort((a,b)=>new Date(a.dt)-new Date(b.dt)).forEach(j=>{
     const pal=ST.palpites.find(p=>p.nome.toLowerCase()===nome.toLowerCase()&&p.jid===j.id);
     const ok=j.res&&j.res.g1!=='';
-    const r=ok?pts_(pal.g1,pal.g2,j.res.g1,j.res.g2):null;
+    const r=ok?pts(pal.g1,pal.g2,j.res.g1,j.res.g2):null;
     const bc=r===3?'by':r===1?'bg':r===0?'br':'';
     h+=`<div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.35rem .4rem;border-bottom:1px solid var(--border);font-size:.78rem;flex-wrap:wrap">
       <span style="flex:1;min-width:100px">${j.t1} × ${j.t2}</span>
