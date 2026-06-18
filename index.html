@@ -201,6 +201,7 @@ select option{background:#1a2235;}
   <div class="hdr-r">
     <button class="btn btn-o btn-sm" onclick="openMobileMenu()" style="display:none" id="btn-hamburger">☰</button>
     <button class="btn btn-y btn-sm" onclick="showTab('ranking')">🏅 Ranking</button>
+    <button class="btn btn-o btn-sm" onclick="openRegras()">📜 Regras</button>
     <button class="btn btn-o btn-sm" onclick="openAdmin()">⚙️ Admin</button>
   </div>
 </header>
@@ -315,6 +316,37 @@ select option{background:#1a2235;}
 </div>
 
 <!-- ADMIN MODAL -->
+<div class="mo" id="modal-regras">
+  <div class="modal" style="max-width:480px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem">
+      <h2>📜 Regras do Bolão</h2>
+      <button class="btn btn-o btn-sm" onclick="closeRegras()">✕</button>
+    </div>
+    <div class="sec">🎯 Pontuação</div>
+    <div style="display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:120px;background:var(--card2);border-radius:10px;padding:.85rem;text-align:center">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--amarelo)">+3</div>
+        <div class="ht">Placar exato</div>
+      </div>
+      <div style="flex:1;min-width:120px;background:var(--card2);border-radius:10px;padding:.85rem;text-align:center">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--verde)">+1</div>
+        <div class="ht">Vencedor/empate</div>
+      </div>
+      <div style="flex:1;min-width:120px;background:var(--card2);border-radius:10px;padding:.85rem;text-align:center">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--muted)">0</div>
+        <div class="ht">Errou</div>
+      </div>
+    </div>
+    <div class="sec">🏆 Critérios de classificação</div>
+    <ol style="padding-left:1.3rem;margin-top:.5rem;display:flex;flex-direction:column;gap:.6rem;font-size:.88rem">
+      <li><strong>Quem tiver mais pontos</strong> ganha.</li>
+      <li>Empate: <strong>quem acertou mais placares exatos</strong> vence.</li>
+      <li>Empate ainda: <strong>quem acertou mais placares do Brasil</strong> vence.</li>
+      <li>Empate ainda: <strong>divide a grana</strong> entre os empatados.</li>
+    </ol>
+  </div>
+</div>
+
 <div class="mo" id="modal-admin">
   <div class="modal">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem">
@@ -753,7 +785,7 @@ function renderJogos(){
       const ok=j.res&&j.res.g1!=='';
       const st=jogoStatus(j);
       const w1=ok&&j.res.g1>j.res.g2,w2=ok&&j.res.g2>j.res.g1;
-      const isLive=j.live||st==='andamento';
+      const isLive=j.live||st==='live'||st==='andamento';
       hh+=`<div class="grupo-card" style="${isLive?'border:2px solid rgba(239,68,68,.5)':''}">
         <div class="grupo-header" style="${isLive?'background:rgba(239,68,68,.3)':''}">
           ${j.gr?'Grupo '+j.gr:j.fase} · ${j.city||''}
@@ -837,9 +869,9 @@ function renderJogos(){
           <span style="${w1?'color:var(--amarelo);font-weight:700':''}">${fl(j.t1)} ${j.t1}</span>
         </div>
         <div class="jm">
-          ${(ok||(j.live||st==='andamento'))
-            ?`<div class="placar" style="${j.live||st==='andamento'?'color:#f87171':''}">${ok?j.res.g1:0}<span style="color:var(--muted)">-</span>${ok?j.res.g2:0}</div>
-              ${j.live||st==='andamento'?'<span class="badge blv" style="margin-top:2px;display:inline-block">🔴 Ao vivo</span>':''}` 
+          ${(ok||(j.live||st==='live'||st==='andamento'))
+            ?`<div class="placar" style="${j.live||st==='live'||st==='andamento'?'color:#f87171':''}">${ok?j.res.g1:0}<span style="color:var(--muted)">-</span>${ok?j.res.g2:0}</div>
+              ${j.live||st==='live'||st==='andamento'?'<span class="badge blv" style="margin-top:2px;display:inline-block">🔴 Ao vivo</span>':''}` 
             :`<div style="font-size:.7rem;color:var(--muted)">${fdata(j.dt)}<br>${fhora(j.dt)}</div>`}
         </div>
         <div class="jt r">
@@ -1250,15 +1282,21 @@ function calcRnk(){
   const res=ST.jogos.filter(j=>j.res&&j.res.g1!=='');
   if(!res.length)return[];
   return[...new Set(ST.palpites.map(p=>p.nome))].map(nome=>{
-    let p=0,ex=0,vc=0,er=0;
+    let p=0,ex=0,vc=0,er=0,exBrasil=0;
     res.forEach(j=>{
       const pal=ST.palpites.find(x=>x.nome.toLowerCase()===nome.toLowerCase()&&x.jid===j.id);
       if(!pal)return;
       const r=pts(pal.g1,pal.g2,j.res.g1,j.res.g2);
-      if(r===3){p+=3;ex++;}else if(r===1){p+=1;vc++;}else if(r===0)er++;
+      const ehBrasil=j.t1==='Brasil'||j.t2==='Brasil';
+      if(r===3){p+=3;ex++;if(ehBrasil)exBrasil++;}else if(r===1){p+=1;vc++;}else if(r===0)er++;
     });
-    return{nome,p,ex,vc,er};
-  }).sort((a,b)=>b.p-a.p||b.ex-a.ex);
+    return{nome,p,ex,vc,er,exBrasil};
+  }).sort((a,b)=>
+    b.p-a.p ||              // 1º critério: mais pontos
+    b.ex-a.ex ||            // 2º critério: mais placares exatos
+    b.exBrasil-a.exBrasil   // 3º critério: mais placares exatos do Brasil
+    // 4º critério (empate final) = divide a grana, não há ordenação adicional necessária
+  );
 }
 let _rankingView='geral';
 let _rankingGrupo='A';
@@ -1482,40 +1520,17 @@ function rAll(){
   }
   h+='</div>';
 
-  // ENCERRADOS — fechado por padrão, abre ao clicar
+  // ENCERRADOS — organizado por Grupo/Mata-mata/Dia, com sub-abas
   h+=`<div id="ppg-fim" style="display:${!aoVivo.length&&encerrados.length?'block':'none'}">`;
   if(!encerrados.length){
     h+='<div class="empty"><div class="ei">✅</div><p>Nenhum jogo encerrado ainda.</p></div>';
   }else{
-    encerrados.forEach(j=>{
-      const jp=ST.palpites.filter(p=>p.jid===j.id);
-      const jid=j.id;
-      h+=`<div style="margin-bottom:.5rem">
-        <div onclick="togglePalpitesFim('${jid}')" style="display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem;border-radius:8px;background:var(--card2);cursor:pointer;user-select:none">
-          <span style="font-weight:600;font-size:.85rem">${fl(j.t1)} ${j.t1} <span style="color:var(--amarelo);font-family:'Bebas Neue',sans-serif;font-size:1.1rem;margin:0 4px">${j.res.g1}×${j.res.g2}</span> ${j.t2} ${fl(j.t2)}</span>
-          <span style="display:flex;align-items:center;gap:.5rem;flex-shrink:0">
-            <span class="badge bb">${jp.length} palpite(s)</span>
-            <span id="arr-${jid}" style="color:var(--muted);font-size:.8rem;transition:transform .2s">▼</span>
-          </span>
-        </div>
-        <div id="det-fim-${jid}" style="display:none;padding:.5rem 0 0">
-          ${!jp.length?'<p class="ht" style="padding:.5rem .65rem">Nenhum palpite.</p>':`
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) 70px 70px 55px;gap:.35rem;padding:.32rem .65rem;font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase">
-            <span>Participante</span><span style="text-align:center">Palpite</span><span style="text-align:center">Resultado</span><span style="text-align:right">Pts</span></div>
-          ${jp.sort((a,b)=>a.nome.localeCompare(b.nome)).map(p=>{
-            const r=pts(p.g1,p.g2,j.res.g1,j.res.g2);
-            const bc=r===3?'by':r===1?'bg':r===0?'br':'';
-            return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 70px 70px 55px;gap:.35rem;align-items:center;padding:.5rem .65rem;border-radius:8px;background:var(--card2);margin-bottom:.4rem;font-size:.82rem">
-              <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.nome)}</span>
-              <span style="text-align:center;font-weight:700">${p.g1}×${p.g2}</span>
-              <span style="text-align:center;color:var(--muted)">${j.res.g1}×${j.res.g2}</span>
-              <span style="text-align:right"><span class="badge ${bc}">${r===3?'+3':r===1?'+1':'0'}</span></span>
-            </div>`;
-          }).join('')}
-          `}
-        </div>
-      </div>`;
-    });
+    h+=`<div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
+      <button class="btn btn-y btn-sm" id="efim-grupo" onclick="setEncOrg('grupo')" style="font-size:.72rem">📊 Por grupo</button>
+      <button class="btn btn-o btn-sm" id="efim-mata" onclick="setEncOrg('mata')" style="font-size:.72rem">🏆 Mata-mata</button>
+      <button class="btn btn-o btn-sm" id="efim-dia" onclick="setEncOrg('dia')" style="font-size:.72rem">🗓️ Por dia</button>
+    </div>
+    <div id="efim-content"></div>`;
   }
   h+='</div>';
 
@@ -1538,6 +1553,7 @@ function rAll(){
   h+='</div>';
 
   el.innerHTML=h;
+  if(!aoVivo.length&&encerrados.length) renderEncOrg();
 }
 function switchPalpitesTab(tab){
   ['live','fim','prox'].forEach(t=>{
@@ -1546,8 +1562,104 @@ function switchPalpitesTab(tab){
     if(pg) pg.style.display=t===tab?'block':'none';
     if(tb) tb.classList.toggle('active',t===tab);
   });
+  if(tab==='fim') renderEncOrg();
 }
 window.switchPalpitesTab=switchPalpitesTab;
+
+let _encOrg='grupo';
+function setEncOrg(modo){
+  _encOrg=modo;
+  document.querySelectorAll('[id^="efim-"]').forEach(b=>{if(b.id!=='efim-content')b.className='btn btn-o btn-sm';});
+  const btn=document.getElementById('efim-'+modo);
+  if(btn)btn.className='btn btn-y btn-sm';
+  renderEncOrg();
+}
+window.setEncOrg=setEncOrg;
+
+function renderJogoFimRow(j){
+  const jp=ST.palpites.filter(p=>p.jid===j.id);
+  const jid=j.id;
+  return `<div style="margin-bottom:.5rem">
+    <div onclick="togglePalpitesFim('${jid}')" style="display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem;border-radius:8px;background:var(--card2);cursor:pointer;user-select:none">
+      <span style="font-weight:600;font-size:.85rem">${fl(j.t1)} ${j.t1} <span style="color:var(--amarelo);font-family:'Bebas Neue',sans-serif;font-size:1.1rem;margin:0 4px">${j.res.g1}×${j.res.g2}</span> ${j.t2} ${fl(j.t2)}</span>
+      <span style="display:flex;align-items:center;gap:.5rem;flex-shrink:0">
+        <span class="badge bb">${jp.length} palpite(s)</span>
+        <span id="arr-${jid}" style="color:var(--muted);font-size:.8rem;transition:transform .2s">▼</span>
+      </span>
+    </div>
+    <div id="det-fim-${jid}" style="display:none;padding:.5rem 0 0">
+      ${!jp.length?'<p class="ht" style="padding:.5rem .65rem">Nenhum palpite.</p>':`
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 70px 70px 55px;gap:.35rem;padding:.32rem .65rem;font-size:.7rem;color:var(--muted);font-weight:600;text-transform:uppercase">
+        <span>Participante</span><span style="text-align:center">Palpite</span><span style="text-align:center">Resultado</span><span style="text-align:right">Pts</span></div>
+      ${jp.sort((a,b)=>a.nome.localeCompare(b.nome)).map(p=>{
+        const r=pts(p.g1,p.g2,j.res.g1,j.res.g2);
+        const bc=r===3?'by':r===1?'bg':r===0?'br':'';
+        return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 70px 70px 55px;gap:.35rem;align-items:center;padding:.5rem .65rem;border-radius:8px;background:var(--card2);margin-bottom:.4rem;font-size:.82rem">
+          <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.nome)}</span>
+          <span style="text-align:center;font-weight:700">${p.g1}×${p.g2}</span>
+          <span style="text-align:center;color:var(--muted)">${j.res.g1}×${j.res.g2}</span>
+          <span style="text-align:right"><span class="badge ${bc}">${r===3?'+3':r===1?'+1':'0'}</span></span>
+        </div>`;
+      }).join('')}
+      `}
+    </div>
+  </div>`;
+}
+
+function renderEncOrg(){
+  const el=document.getElementById('efim-content');
+  if(!el)return;
+  const encerrados=ST.jogos.filter(j=>jogoStatus(j)==='fim').sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+  let h='';
+
+  if(_encOrg==='grupo'){
+    const grupos=[...new Set(encerrados.filter(j=>j.fase==='Grupos').map(j=>j.gr))].sort();
+    grupos.forEach(gr=>{
+      const jogosGr=encerrados.filter(j=>j.fase==='Grupos'&&j.gr===gr);
+      if(!jogosGr.length)return;
+      h+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--amarelo);margin:1rem 0 .5rem;display:flex;align-items:center;gap:.5rem">
+        📊 Grupo ${gr}<span style="flex:1;height:1px;background:var(--border);display:block"></span></div>`;
+      jogosGr.forEach(j=>{h+=renderJogoFimRow(j);});
+    });
+    if(!h)h='<div class="empty"><div class="ei">📊</div><p>Nenhum jogo de grupo encerrado ainda.</p></div>';
+  }
+
+  else if(_encOrg==='mata'){
+    const fasesMM=['R32','Oitavas','Quartas','Semifinal','3º Lugar','Final'];
+    const faseLabel={R32:'Rodada de 32',Oitavas:'Oitavas de Final',Quartas:'Quartas de Final',Semifinal:'Semifinais','3º Lugar':'3º Lugar',Final:'🏆 Final'};
+    fasesMM.forEach(f=>{
+      const jogosF=encerrados.filter(j=>j.fase===f);
+      if(!jogosF.length)return;
+      h+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--amarelo);margin:1rem 0 .5rem;display:flex;align-items:center;gap:.5rem">
+        🏆 ${faseLabel[f]||f}<span style="flex:1;height:1px;background:var(--border);display:block"></span></div>`;
+      jogosF.forEach(j=>{h+=renderJogoFimRow(j);});
+    });
+    if(!h)h='<div class="empty"><div class="ei">🏆</div><p>Nenhum jogo do mata-mata encerrado ainda.</p></div>';
+  }
+
+  else if(_encOrg==='dia'){
+    const diasMap={};
+    const diasOrder=[];
+    encerrados.forEach(j=>{
+      if(!j.dt)return;
+      const d=new Date(j.dt);
+      const key=d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'});
+      if(!diasMap[key]){diasMap[key]=[];diasOrder.push({key,ts:d.getTime()});}
+      diasMap[key].push(j);
+    });
+    diasOrder.sort((a,b)=>a.ts-b.ts);
+    diasOrder.forEach(({key:dia})=>{
+      h+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--amarelo);margin:1rem 0 .5rem;display:flex;align-items:center;gap:.5rem;text-transform:capitalize">
+        🗓️ ${dia}<span style="flex:1;height:1px;background:var(--border);display:block"></span></div>`;
+      diasMap[dia].forEach(j=>{h+=renderJogoFimRow(j);});
+    });
+    if(!h)h='<div class="empty"><div class="ei">🗓️</div><p>Nenhum jogo encerrado ainda.</p></div>';
+  }
+
+  el.innerHTML=h;
+}
+window.renderEncOrg=renderEncOrg;
+
 function togglePalpitesFim(jid){
   const det=document.getElementById('det-fim-'+jid);
   const arr=document.getElementById('arr-'+jid);
@@ -1563,6 +1675,15 @@ window.togglePalpitesFim=togglePalpitesFim;
 // ADMIN
 // ════════════════════════════════════════════
 let aOk=false;
+function openRegras(){
+  document.getElementById('modal-regras').classList.add('open');
+}
+function closeRegras(){
+  document.getElementById('modal-regras').classList.remove('open');
+}
+window.openRegras=openRegras;
+window.closeRegras=closeRegras;
+
 function openAdmin(){
   document.getElementById('modal-admin').classList.add('open');
   if(aOk)showABody();
@@ -1825,7 +1946,7 @@ function apagarPalpiteJogo(nome,jid){
 window.apagarPalpiteJogo=apagarPalpiteJogo;
 
 function mesclarDuplicados(){
-  // Agrupa por nome normalizado (lowercase+trim), mantém a grafia do PRIMEIRO encontrado
+  // Agrupa por nome normalizado (lowercase+trim)
   const grupos={};
   ST.palpites.forEach(p=>{
     const key=normNome(p.nome);
@@ -1833,13 +1954,20 @@ function mesclarDuplicados(){
     grupos[key].push(p);
   });
 
-  let totalMesclados=0, palpitesUnificados=[];
+  let totalMesclados=0, palpitesUnificados=[], nomesAfetados=[];
   Object.values(grupos).forEach(lista=>{
-    if(lista.length<=1){palpitesUnificados.push(...lista);return;}
-    // Pega a grafia mais usada/primeira como canônica
-    const grafiaCanonica=lista[0].nome;
+    // Verifica se há MAIS DE UMA GRAFIA diferente dentro do grupo (não apenas múltiplos jogos)
+    const grafiasDistintas=[...new Set(lista.map(p=>p.nome))];
+    if(grafiasDistintas.length<=1){
+      // Mesma grafia em todos — não é duplicado, mantém como está
+      palpitesUnificados.push(...lista);
+      return;
+    }
+    // Há grafias diferentes para a mesma pessoa — mescla
+    const grafiaCanonica=grafiasDistintas[0];
     totalMesclados++;
-    // Para cada jogo, mantém só 1 palpite (o mais recente da lista, todos já têm mesma key)
+    nomesAfetados.push(grafiasDistintas.join(' / '));
+    // Para cada jogo, mantém só 1 palpite (o mais recente da lista)
     const porJogo={};
     lista.forEach(p=>{porJogo[p.jid]=p;}); // último sobrescreve
     Object.values(porJogo).forEach(p=>{
@@ -1849,7 +1977,7 @@ function mesclarDuplicados(){
 
   if(!totalMesclados){toast('Nenhum nome duplicado encontrado!');return;}
 
-  if(!confirm('Encontrados '+totalMesclados+' nome(s) duplicado(s). Mesclar agora?'))return;
+  if(!confirm('Encontrados '+totalMesclados+' nome(s) duplicado(s):\n\n'+nomesAfetados.join('\n')+'\n\nMesclar agora?'))return;
 
   ST.palpites=palpitesUnificados;
   save();updSt();rAdmUsers();
