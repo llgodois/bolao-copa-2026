@@ -69,22 +69,33 @@ select option{background:#1a2235;}
 .blo{background:rgba(100,100,100,.2);color:#aaa;border:1px solid rgba(100,100,100,.3);}
 
 /* BRACKET MATA-MATA */
-.bracket-wrap{overflow-x:auto;padding-bottom:1rem;}
-.bracket{display:flex;gap:0;min-width:900px;}
-.bracket-col{display:flex;flex-direction:column;flex:1;}
-.bracket-col-title{font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:1px;color:var(--amarelo);text-align:center;padding:.5rem;background:rgba(0,39,118,.4);border-bottom:1px solid var(--border);margin-bottom:.5rem;}
-.bracket-matches{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:.5rem;padding:0 4px;}
+.bracket-wrap{overflow-x:auto;padding-bottom:1rem;-webkit-overflow-scrolling:touch;}
+.bracket{display:flex;gap:14px;min-width:900px;align-items:stretch;}
+.bracket-col{display:flex;flex-direction:column;flex:1;min-width:170px;}
+.bracket-col-final{min-width:190px;}
+.bracket-col-title{font-family:'Bebas Neue',sans-serif;font-size:.78rem;letter-spacing:1px;color:var(--amarelo);text-align:center;padding:.5rem;background:rgba(0,39,118,.4);border-bottom:1px solid var(--border);margin-bottom:.5rem;border-radius:6px 6px 0 0;white-space:nowrap;}
+.bracket-matches{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:.6rem;padding:0 2px;}
 .bmatch{background:var(--card2);border:1px solid var(--border);border-radius:8px;overflow:hidden;position:relative;}
 .bmatch.winner-left{border-left:3px solid var(--amarelo);}
-.bmatch-team{display:flex;align-items:center;justify-content:space-between;padding:.38rem .6rem;font-size:.78rem;font-weight:600;gap:.3rem;}
+.bmatch-team{display:flex;align-items:center;justify-content:space-between;padding:.38rem .55rem;font-size:.74rem;font-weight:600;gap:.3rem;}
 .bmatch-team:first-child{border-bottom:1px solid var(--border);}
 .bmatch-team .tname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.bmatch-team .tscore{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;min-width:20px;text-align:right;}
+.bmatch-team .tscore{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;min-width:18px;text-align:right;}
 .bmatch-team.winner .tname{color:var(--amarelo);}
 .bmatch-team.winner .tscore{color:var(--amarelo);}
 .bmatch-divider{height:1px;background:var(--border);}
-.bmatch-info{font-size:.6rem;color:var(--muted);padding:.2rem .6rem;background:rgba(0,0,0,.2);text-align:center;}
+.bmatch-info{font-size:.58rem;color:var(--muted);padding:.2rem .55rem;background:rgba(0,0,0,.2);text-align:center;white-space:nowrap;}
 .connector{display:flex;flex-direction:column;justify-content:space-around;width:12px;flex-shrink:0;}
+
+@media(max-width:580px){
+  .bracket{min-width:780px;gap:8px;}
+  .bracket-col{min-width:135px;}
+  .bracket-col-final{min-width:150px;}
+  .bracket-col-title{font-size:.68rem;padding:.4rem;}
+  .bmatch-team{font-size:.7rem;padding:.34rem .5rem;}
+  .bmatch-team .tscore{font-size:.95rem;}
+  .bmatch-info{font-size:.55rem;}
+}
 
 /* PALPITAR */
 .jc{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;margin-bottom:.5rem;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.65rem;}
@@ -145,7 +156,9 @@ select option{background:#1a2235;}
 .confirm-box p{font-size:.88rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.5;}
 .confirm-btns{display:flex;gap:.75rem;justify-content:center;}
 
-@media(max-width:580px){.wrap{padding:1rem;} header{padding:1rem;} .logo h1{font-size:1.35rem;} .bracket{min-width:700px;}}
+@media(max-width:580px){.wrap{padding:1rem;} header{padding:1rem;} .logo h1{font-size:1.35rem;} .bracket{min-width:700px;}
+.nome-confirma-row{flex-direction:column;}
+.nome-confirma-row button{width:100%;}}
 
 /* FLOATING SAVE BUTTON */
 #fab-salvar{
@@ -271,9 +284,27 @@ select option{background:#1a2235;}
 <div class="pg on" id="pg-palpitar">
   <div class="card">
     <div class="ct">✏️ Registrar Palpites</div>
-    <div style="margin-bottom:1rem" class="fg2">
-      <div class="fg"><label>Seu nome / apelido</label><input type="text" id="inp-nome" placeholder="Ex: João Silva" maxlength="40" oninput="renderPalpitar()" onchange="renderPalpitar()"/></div>
-      
+    <div style="margin-bottom:1rem">
+      <div id="nome-selecao-bloco">
+        <label style="font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Já participa do bolão?</label>
+        <select id="sel-nome-existente" onchange="selecionarNomeExistente()" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.65rem .85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;margin-bottom:.6rem">
+          <option value="">-- Selecione seu nome --</option>
+        </select>
+        <div style="display:flex;align-items:center;gap:.6rem;margin:.7rem 0;color:var(--muted);font-size:.78rem">
+          <div style="flex:1;height:1px;background:var(--border)"></div>
+          ou
+          <div style="flex:1;height:1px;background:var(--border)"></div>
+        </div>
+        <label style="font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Primeira vez? Digite seu nome</label>
+        <div style="display:flex;gap:.5rem" class="nome-confirma-row">
+          <input type="text" id="inp-nome" placeholder="Ex: João Silva" maxlength="40" oninput="onNomeInput()" style="flex:1;min-width:0;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.65rem .85rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem"/>
+          <button class="btn btn-y" onclick="verificarPinNome()" style="flex-shrink:0;white-space:nowrap">✅ Confirmar</button>
+        </div>
+      </div>
+      <div id="nome-confirmado-resumo" style="display:none;align-items:center;justify-content:space-between;gap:.6rem;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);border-radius:8px;padding:.6rem .85rem">
+        <span style="font-size:.87rem;font-weight:600">✅ Logado como: <span id="nome-confirmado-texto" style="color:var(--verde)"></span></span>
+        <button class="btn btn-o btn-sm" onclick="trocarParticipante()" style="flex-shrink:0">🔄 Trocar</button>
+      </div>
     </div>
     <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
       <button class="btn btn-y btn-sm" id="view-grupo" onclick="setViewPalpitar('grupo')">📅 Por grupo</button>
@@ -413,6 +444,22 @@ select option{background:#1a2235;}
   </div>
 </div>
 
+<!-- PIN MODAL -->
+<div class="mo" id="modal-pin">
+  <div class="confirm-box">
+    <h3 id="pin-title">🔒 Digite seu PIN</h3>
+    <p id="pin-msg" style="margin-bottom:.9rem">Digite o PIN de 4 dígitos para confirmar que é você.</p>
+    <input type="password" id="inp-pin" maxlength="4" inputmode="numeric" pattern="[0-9]*"
+      placeholder="••••" style="width:100%;text-align:center;font-size:1.5rem;letter-spacing:.5rem;padding:.7rem;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;margin-bottom:.6rem"
+      onkeydown="if(event.key==='Enter')pinAccept()"/>
+    <p id="pin-error" style="color:#f87171;font-size:.82rem;margin-bottom:.7rem;display:none;font-weight:600">⚠️ PIN incorreto. Tente novamente.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-o" onclick="pinReject()">Cancelar</button>
+      <button class="btn btn-y" onclick="pinAccept()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -515,43 +562,43 @@ const COPA = [
   {id:'l5',t1:'Panamá',t2:'Inglaterra',dt:'2026-06-27T18:00',fase:'Grupos',gr:'L',city:'Nova York/NJ'},
   {id:'l6',t1:'Croácia',t2:'Gana',dt:'2026-06-27T18:00',fase:'Grupos',gr:'L',city:'Philadelphia'},
   // RODADA DE 32
-  {id:'r01',t1:'A definir',t2:'A definir',dt:'2026-06-28T16:00',fase:'R32',gr:'',city:'Los Angeles'},
-  {id:'r02',t1:'A definir',t2:'A definir',dt:'2026-06-29T14:00',fase:'R32',gr:'',city:'Houston'},
-  {id:'r03',t1:'A definir',t2:'A definir',dt:'2026-06-29T17:30',fase:'R32',gr:'',city:'Boston'},
-  {id:'r04',t1:'A definir',t2:'A definir',dt:'2026-06-29T22:00',fase:'R32',gr:'',city:'Monterrey'},
-  {id:'r05',t1:'A definir',t2:'A definir',dt:'2026-06-30T14:00',fase:'R32',gr:'',city:'Dallas'},
-  {id:'r06',t1:'A definir',t2:'A definir',dt:'2026-06-30T18:00',fase:'R32',gr:'',city:'Nova York/NJ'},
-  {id:'r07',t1:'A definir',t2:'A definir',dt:'2026-06-30T22:00',fase:'R32',gr:'',city:'Cidade do México'},
-  {id:'r08',t1:'A definir',t2:'A definir',dt:'2026-07-01T13:00',fase:'R32',gr:'',city:'Atlanta'},
-  {id:'r09',t1:'A definir',t2:'A definir',dt:'2026-07-01T17:00',fase:'R32',gr:'',city:'Seattle'},
-  {id:'r10',t1:'A definir',t2:'A definir',dt:'2026-07-01T21:00',fase:'R32',gr:'',city:'San Francisco'},
-  {id:'r11',t1:'A definir',t2:'A definir',dt:'2026-07-02T00:00',fase:'R32',gr:'',city:'Vancouver'},
-  {id:'r12',t1:'A definir',t2:'A definir',dt:'2026-07-02T16:00',fase:'R32',gr:'',city:'Los Angeles'},
-  {id:'r13',t1:'A definir',t2:'A definir',dt:'2026-07-02T20:00',fase:'R32',gr:'',city:'Toronto'},
-  {id:'r14',t1:'A definir',t2:'A definir',dt:'2026-07-03T15:00',fase:'R32',gr:'',city:'Dallas'},
-  {id:'r15',t1:'A definir',t2:'A definir',dt:'2026-07-03T17:00',fase:'R32',gr:'',city:'Atlanta'},
-  {id:'r16',t1:'A definir',t2:'A definir',dt:'2026-07-03T22:30',fase:'R32',gr:'',city:'Kansas City'},
+  {id:'r01',t1:'África do Sul',t2:'Canadá',dt:'2026-06-28T16:00',fase:'R32',gr:'',city:'Los Angeles'},
+  {id:'r02',t1:'Alemanha',t2:'3º A/B/C/D/F',dt:'2026-06-29T17:30',fase:'R32',gr:'',city:'Boston'},
+  {id:'r03',t1:'1º Grupo F',t2:'Marrocos',dt:'2026-06-29T22:00',fase:'R32',gr:'',city:'Monterrey'},
+  {id:'r04',t1:'Brasil',t2:'2º Grupo F',dt:'2026-06-29T14:00',fase:'R32',gr:'',city:'Houston'},
+  {id:'r05',t1:'1º Grupo I',t2:'3º C/D/F/G/H',dt:'2026-06-30T18:00',fase:'R32',gr:'',city:'Nova York/NJ'},
+  {id:'r06',t1:'2º Grupo E',t2:'2º Grupo I',dt:'2026-06-30T14:00',fase:'R32',gr:'',city:'Dallas'},
+  {id:'r07',t1:'México',t2:'3º C/E/F/H/I',dt:'2026-06-30T22:00',fase:'R32',gr:'',city:'Cidade do México'},
+  {id:'r08',t1:'1º Grupo L',t2:'3º E/H/I/J/K',dt:'2026-07-01T13:00',fase:'R32',gr:'',city:'Atlanta'},
+  {id:'r09',t1:'Estados Unidos',t2:'3º B/E/F/I/J',dt:'2026-07-01T21:00',fase:'R32',gr:'',city:'San Francisco'},
+  {id:'r10',t1:'1º Grupo G',t2:'3º A/E/H/I/J',dt:'2026-07-01T17:00',fase:'R32',gr:'',city:'Seattle'},
+  {id:'r11',t1:'2º Grupo K',t2:'2º Grupo L',dt:'2026-07-02T20:00',fase:'R32',gr:'',city:'Vancouver'},
+  {id:'r12',t1:'1º Grupo H',t2:'2º Grupo J',dt:'2026-07-02T16:00',fase:'R32',gr:'',city:'Los Angeles'},
+  {id:'r13',t1:'Suíça',t2:'3º E/F/G/I/J',dt:'2026-07-03T00:00',fase:'R32',gr:'',city:'Toronto'},
+  {id:'r14',t1:'Argentina',t2:'2º Grupo H',dt:'2026-07-03T19:00',fase:'R32',gr:'',city:'Atlanta'},
+  {id:'r15',t1:'1º Grupo K',t2:'3º D/E/I/J/L',dt:'2026-07-03T22:30',fase:'R32',gr:'',city:'Dallas'},
+  {id:'r16',t1:'2º Grupo D',t2:'2º Grupo G',dt:'2026-07-03T15:00',fase:'R32',gr:'',city:'Kansas City'},
   // OITAVAS DE FINAL
-  {id:'o1',t1:'A definir',t2:'A definir',dt:'2026-07-04T14:00',fase:'Oitavas',gr:'',city:'Houston'},
-  {id:'o2',t1:'A definir',t2:'A definir',dt:'2026-07-04T18:00',fase:'Oitavas',gr:'',city:'Philadelphia'},
-  {id:'o3',t1:'A definir',t2:'A definir',dt:'2026-07-05T17:00',fase:'Oitavas',gr:'',city:'Nova York/NJ'},
-  {id:'o4',t1:'A definir',t2:'A definir',dt:'2026-07-05T21:00',fase:'Oitavas',gr:'',city:'Cidade do México'},
-  {id:'o5',t1:'A definir',t2:'A definir',dt:'2026-07-06T15:00',fase:'Oitavas',gr:'',city:'Dallas'},
-  {id:'o6',t1:'A definir',t2:'A definir',dt:'2026-07-06T20:00',fase:'Oitavas',gr:'',city:'Seattle'},
-  {id:'o7',t1:'A definir',t2:'A definir',dt:'2026-07-07T13:00',fase:'Oitavas',gr:'',city:'Atlanta'},
-  {id:'o8',t1:'A definir',t2:'A definir',dt:'2026-07-07T17:00',fase:'Oitavas',gr:'',city:'Vancouver'},
+  {id:'o1',t1:'Vencedor R32 2',t2:'Vencedor R32 5',dt:'2026-07-04T18:00',fase:'Oitavas',gr:'',city:'Houston'},
+  {id:'o2',t1:'Vencedor R32 1',t2:'Vencedor R32 3',dt:'2026-07-04T14:00',fase:'Oitavas',gr:'',city:'Philadelphia'},
+  {id:'o3',t1:'Vencedor R32 4',t2:'Vencedor R32 6',dt:'2026-07-05T17:00',fase:'Oitavas',gr:'',city:'Nova York/NJ'},
+  {id:'o4',t1:'Vencedor R32 7',t2:'Vencedor R32 8',dt:'2026-07-05T21:00',fase:'Oitavas',gr:'',city:'Cidade do México'},
+  {id:'o5',t1:'Vencedor R32 11',t2:'Vencedor R32 12',dt:'2026-07-06T16:00',fase:'Oitavas',gr:'',city:'Dallas'},
+  {id:'o6',t1:'Vencedor R32 9',t2:'Vencedor R32 10',dt:'2026-07-06T21:00',fase:'Oitavas',gr:'',city:'Seattle'},
+  {id:'o7',t1:'Vencedor R32 14',t2:'Vencedor R32 16',dt:'2026-07-07T13:00',fase:'Oitavas',gr:'',city:'Atlanta'},
+  {id:'o8',t1:'Vencedor R32 13',t2:'Vencedor R32 15',dt:'2026-07-07T17:00',fase:'Oitavas',gr:'',city:'Vancouver'},
   // QUARTAS DE FINAL
-  {id:'q1',t1:'A definir',t2:'A definir',dt:'2026-07-09T17:00',fase:'Quartas',gr:'',city:'Boston'},
-  {id:'q2',t1:'A definir',t2:'A definir',dt:'2026-07-10T16:00',fase:'Quartas',gr:'',city:'Los Angeles'},
-  {id:'q3',t1:'A definir',t2:'A definir',dt:'2026-07-11T18:00',fase:'Quartas',gr:'',city:'Miami'},
-  {id:'q4',t1:'A definir',t2:'A definir',dt:'2026-07-11T21:00',fase:'Quartas',gr:'',city:'Kansas City'},
+  {id:'q1',t1:'Vencedor Oitavas 2',t2:'Vencedor Oitavas 1',dt:'2026-07-09T17:00',fase:'Quartas',gr:'',city:'Boston'},
+  {id:'q2',t1:'Vencedor Oitavas 4',t2:'Vencedor Oitavas 3',dt:'2026-07-10T16:00',fase:'Quartas',gr:'',city:'Los Angeles'},
+  {id:'q3',t1:'Vencedor Oitavas 6',t2:'Vencedor Oitavas 5',dt:'2026-07-11T18:00',fase:'Quartas',gr:'',city:'Miami'},
+  {id:'q4',t1:'Vencedor Oitavas 8',t2:'Vencedor Oitavas 7',dt:'2026-07-11T22:00',fase:'Quartas',gr:'',city:'Kansas City'},
   // SEMIFINAIS
-  {id:'s1',t1:'A definir',t2:'A definir',dt:'2026-07-14T16:00',fase:'Semifinal',gr:'',city:'Dallas'},
-  {id:'s2',t1:'A definir',t2:'A definir',dt:'2026-07-15T16:00',fase:'Semifinal',gr:'',city:'Dallas'},
+  {id:'s1',t1:'Vencedor Quartas 2',t2:'Vencedor Quartas 1',dt:'2026-07-14T16:00',fase:'Semifinal',gr:'',city:'Dallas'},
+  {id:'s2',t1:'Vencedor Quartas 4',t2:'Vencedor Quartas 3',dt:'2026-07-15T16:00',fase:'Semifinal',gr:'',city:'Dallas'},
   // 3º LUGAR
-  {id:'t1',t1:'A definir',t2:'A definir',dt:'2026-07-18T18:00',fase:'3º Lugar',gr:'',city:'Miami'},
+  {id:'t1',t1:'Perdedor Semifinal 2',t2:'Perdedor Semifinal 1',dt:'2026-07-18T18:00',fase:'3º Lugar',gr:'',city:'Miami'},
   // GRANDE FINAL
-  {id:'fn',t1:'A definir',t2:'A definir',dt:'2026-07-19T16:00',fase:'Final',gr:'',city:'Nova York/NJ'},
+  {id:'fn',t1:'Vencedor Semifinal 2',t2:'Vencedor Semifinal 1',dt:'2026-07-19T16:00',fase:'Final',gr:'',city:'Nova York/NJ'},
 ];
 
 const FC={'brasil':'br','argentina':'ar','frança':'fr','franca':'fr','alemanha':'de','espanha':'es','portugal':'pt','inglaterra':'gb-eng','países baixos':'nl','holanda':'nl','uruguai':'uy','colômbia':'co','colombia':'co','méxico':'mx','mexico':'mx','estados unidos':'us','japão':'jp','japao':'jp','austrália':'au','australia':'au','canadá':'ca','canada':'ca','croácia':'hr','croacia':'hr','marrocos':'ma','senegal':'sn','coreia do sul':'kr','suíça':'ch','suica':'ch','bélgica':'be','belgica':'be','egito':'eg','irã':'ir','nova zelândia':'nz','arábia saudita':'sa','arabia saudita':'sa','cabo verde':'cv','haiti':'ht','escócia':'gb-sct','escocia':'gb-sct','república tcheca':'cz','republica tcheca':'cz','noruega':'no','áustria':'at','austria':'at','jordânia':'jo','jordania':'jo','argélia':'dz','algeria':'dz','uzbequistão':'uz','uzbequistao':'uz','curaçao':'cw','curacao':'cw','gana':'gh','panamá':'pa','panama':'pa','tunísia':'tn','tunisia':'tn','turquia':'tr','iraque':'iq','bósnia-herzegovina':'ba','bosnia-herzegovina':'ba','qatar':'qa','catar':'qa','costa do marfim':'ci','congo (rd)':'cd','áfrica do sul':'za','africa do sul':'za','equador':'ec','suécia':'se','suecia':'se','paraguai':'py','a definir':'xx'};
@@ -626,6 +673,14 @@ async function initFirebase(){
   }
 }
 // LÓGICA DE PROTEÇÃO ANTISOBRESCRITA (EVITA SUMIÇO DE PALPITES)
+let _fbSaveQueue=Promise.resolve(); // fila para nunca rodar dois fbSave() em paralelo
+
+function save(){
+  // Encadeia a chamada na fila, garantindo que rode uma de cada vez, em ordem
+  _fbSaveQueue = _fbSaveQueue.then(()=>fbSave()).catch(()=>{});
+  return _fbSaveQueue;
+}
+
 async function fbSave(){
   if(!fbOk){saveLocal();return;}
   try{
@@ -636,8 +691,34 @@ async function fbSave(){
     // Nome do PARTICIPANTE vem do input, não de ST.nome (que é o nome do bolão)
     const meuNome = (document.getElementById('inp-nome')?.value||'').trim();
 
+    // ── Proteção de jogos (times do mata-mata e placares) ──
+    // Roda SEMPRE, independente de ter nome de participante preenchido (Admin não tem nome preenchido!)
+    if(atual.jogos){
+      atual.jogos.forEach(fbJ => {
+        const meuJ = ST.jogos.find(j => j.id === fbJ.id);
+        if(!meuJ)return;
+        // Não sobrescreve resultado já definido, A MENOS que eu mesmo esteja alterando este jogo agora
+        // (ST já reflete minha alteração local, então só herda do Firebase o que EU não mudei)
+        if(fbJ.res && fbJ.res.g1 !== '' && (meuJ.res?.g1==='' || meuJ.res?.g1==null)){
+          meuJ.res = fbJ.res;
+          meuJ.live = fbJ.live;
+        }
+        // Se EU editei este jogo há poucos segundos, NUNCA herda do Firebase (protege minha edição atual)
+        const editadoAgora = meuJ._timesEditadoAgora && (Date.now()-meuJ._timesEditadoAgora < 10000);
+        if(!editadoAgora){
+          // Se o Firebase já tem um time definido (não "A definir") e o local ainda está como "A definir",
+          // usa o do Firebase — protege contra sobrescrever a definição do admin feita em outra sessão
+          if(fbJ.t1 && fbJ.t1 !== 'A definir' && meuJ.t1 === 'A definir') meuJ.t1 = fbJ.t1;
+          if(fbJ.t2 && fbJ.t2 !== 'A definir' && meuJ.t2 === 'A definir') meuJ.t2 = fbJ.t2;
+        }
+      });
+    }
+
+    // Protege PINs: mescla com os do Firebase, nunca perde nenhum PIN já criado
+    ST.pins = { ...(atual.pins||{}), ...(ST.pins||{}) };
+
     if(!meuNome){
-      // Sem nome de participante, salva normalmente (admin ou primeiro uso)
+      // Sem nome de participante (Admin) — salva ST já com as proteções de jogos acima aplicadas
       await dbRef.set(ST);
       return;
     }
@@ -655,17 +736,6 @@ async function fbSave(){
     // Reconstrói a lista: preserva os outros + inclui os meus atualizados
     ST.palpites = [...palpitesDosOutros, ...meusPalpitesLocais];
 
-    // Protege placares oficiais: não sobrescreve resultado já definido pelo admin
-    if(atual.jogos){
-      atual.jogos.forEach(fbJ => {
-        const meuJ = ST.jogos.find(j => j.id === fbJ.id);
-        if(meuJ && fbJ.res && fbJ.res.g1 !== ''){
-          meuJ.res = fbJ.res;
-          meuJ.live = fbJ.live;
-        }
-      });
-    }
-
     await dbRef.set(ST);
   }catch(e){saveLocal();}
 }
@@ -675,8 +745,6 @@ function loadLocal(){
   updSt();renderJogos();renderBracket();
 }
 function saveLocal(){try{localStorage.setItem('bolao26v4',JSON.stringify(ST));}catch(e){}}
-function save(){fbSave();}
-
 // ════════════════════════════════════════════
 // API SYNC
 // ════════════════════════════════════════════
@@ -888,60 +956,67 @@ function renderJogos(){
 // ════════════════════════════════════════════
 // RENDER BRACKET — MATA-MATA
 // ════════════════════════════════════════════
+function bmatchHTML(j, compact){
+  const ok=j.res&&j.res.g1!=='';
+  const w1=ok&&parseInt(j.res.g1)>parseInt(j.res.g2), w2=ok&&parseInt(j.res.g2)>parseInt(j.res.g1);
+  const st=jogoStatus(j);
+  const info=st==='live'?'🔴 AO VIVO':st==='fim'?'✓ Encerrado':(fdata(j.dt)+' '+fhora(j.dt));
+  return `<div class="bmatch">
+    <div class="bmatch-team ${w1?'winner':''}">
+      <span class="tname">${fl(j.t1)} ${j.t1}</span>
+      <span class="tscore" style="color:${w1?'var(--amarelo)':'var(--muted)'}">${ok?j.res.g1:''}</span>
+    </div>
+    <div class="bmatch-team ${w2?'winner':''}">
+      <span class="tname">${fl(j.t2)} ${j.t2}</span>
+      <span class="tscore" style="color:${w2?'var(--amarelo)':'var(--muted)'}">${ok?j.res.g2:''}</span>
+    </div>
+    <div class="bmatch-info">${info}</div>
+  </div>`;
+}
+
+function bracketColHTML(jogos, label){
+  if(!jogos.length)return '';
+  let h=`<div class="bracket-col"><div class="bracket-col-title">${label}</div><div class="bracket-matches">`;
+  jogos.forEach(j=>{ h+=bmatchHTML(j); });
+  h+='</div></div>';
+  return h;
+}
+
 function renderBracket(){
   const el=document.getElementById('bracket-view');
-  const fases=['R32','Oitavas','Quartas','Semifinal','Final'];
-  const faseLabel={R32:'Rodada de 32',Oitavas:'Oitavas',Quartas:'Quartas',Semifinal:'Semifinal',Final:'🏆 Final'};
 
-  // 3º lugar separado
+  // Os dados internos (ids r01-r16) seguem a ordem NUMÉRICA das partidas oficiais (73-88),
+  // necessária para a fórmula de "Vencedor R32 N". Para a EXIBIÇÃO visual, reordenamos
+  // seguindo a ordem real da ESPN na tela (que agrupa os jogos que se enfrentam nas Oitavas).
+  const ordemVisualR32=['r02','r05','r01','r03','r11','r12','r09','r10','r04','r06','r07','r08','r14','r16','r13','r15'];
+  const todosJogos=ST.jogos;
+  const r32 = ordemVisualR32.map(id=>todosJogos.find(j=>j.id===id)).filter(Boolean);
+
+  const oitavas=ST.jogos.filter(j=>j.fase==='Oitavas');
+  const quartas=ST.jogos.filter(j=>j.fase==='Quartas');
+  const semi=ST.jogos.filter(j=>j.fase==='Semifinal');
+  const final=ST.jogos.filter(j=>j.fase==='Final');
   const terceiroLugar=ST.jogos.filter(j=>j.fase==='3º Lugar');
 
+  // Cada fase em uma única coluna, na ordem natural (igual ESPN)
   let h='<div class="bracket">';
-  fases.forEach(fase=>{
-    const jogos=ST.jogos.filter(j=>j.fase===fase).sort((a,b)=>new Date(a.dt)-new Date(b.dt));
-    if(!jogos.length)return;
-    h+=`<div class="bracket-col">
-      <div class="bracket-col-title">${faseLabel[fase]||fase}</div>
-      <div class="bracket-matches">`;
-    jogos.forEach(j=>{
-      const ok=j.res&&j.res.g1!=='';
-      const w1=ok&&j.res.g1>j.res.g2, w2=ok&&j.res.g2>j.res.g1, emp=ok&&j.res.g1===j.res.g2;
-      const st=jogoStatus(j);
-      h+=`<div class="bmatch">
-        <div class="bmatch-team ${w1?'winner':''}">
-          <span class="tname">${fl(j.t1)} ${j.t1}</span>
-          <span class="tscore" style="color:${w1?'var(--amarelo)':'var(--muted)'}">${ok?j.res.g1:''}</span>
-        </div>
-        <div class="bmatch-team ${w2?'winner':''}">
-          <span class="tname">${fl(j.t2)} ${j.t2}</span>
-          <span class="tscore" style="color:${w2?'var(--amarelo)':'var(--muted)'}">${ok?j.res.g2:''}</span>
-        </div>
-        <div class="bmatch-info">${st==='live'?'🔴 AO VIVO':st==='fim'?'✓ Encerrado':fdata(j.dt)+' '+fhora(j.dt)}</div>
-      </div>`;
-    });
+  h+=bracketColHTML(r32,'16 Avos de Final');
+  h+=bracketColHTML(oitavas,'Oitavas de Final');
+  h+=bracketColHTML(quartas,'Quartas de Final');
+  h+=bracketColHTML(semi,'Semifinal');
+  if(final.length){
+    h+=`<div class="bracket-col bracket-col-final"><div class="bracket-col-title" style="color:var(--amarelo)">🏆 Final</div><div class="bracket-matches">`;
+    h+=bmatchHTML(final[0]);
     h+='</div></div>';
-  });
+  }
   h+='</div>';
 
-  // Disputa 3º lugar
+  // Disputa 3º lugar — fica abaixo
   if(terceiroLugar.length){
     const j=terceiroLugar[0];
-    const ok=j.res&&j.res.g1!=='';
-    const w1=ok&&j.res.g1>j.res.g2, w2=ok&&j.res.g2>j.res.g1;
-    const st=jogoStatus(j);
-    h+=`<div style="margin-top:1rem">
+    h+=`<div style="margin-top:1.25rem">
       <div class="sec">🥉 Disputa pelo 3º Lugar — ${j.city||''}</div>
-      <div class="bmatch" style="max-width:300px">
-        <div class="bmatch-team ${w1?'winner':''}">
-          <span class="tname">${fl(j.t1)} ${j.t1}</span>
-          <span class="tscore">${ok?j.res.g1:''}</span>
-        </div>
-        <div class="bmatch-team ${w2?'winner':''}">
-          <span class="tname">${fl(j.t2)} ${j.t2}</span>
-          <span class="tscore">${ok?j.res.g2:''}</span>
-        </div>
-        <div class="bmatch-info">${st==='live'?'🔴 AO VIVO':st==='fim'?'✓ Encerrado':fdata(j.dt)+' '+fhora(j.dt)}</div>
-      </div>
+      <div style="max-width:300px">${bmatchHTML(j)}</div>
     </div>`;
   }
 
@@ -964,6 +1039,8 @@ window.setViewPalpitar=setViewPalpitar;
 function renderPalpitar(){
   const el=document.getElementById('plist');
   const nome=document.getElementById('inp-nome').value.trim();
+  popularNomesExistentes();
+  atualizarVisualNome();
 
   // Salva valores preenchidos antes de re-renderizar
   const savedVals={};
@@ -974,6 +1051,12 @@ function renderPalpitar(){
   });
 
   if(!nome){el.innerHTML='<div class="empty"><div class="ei">👆</div><p>Digite seu nome acima para ver os jogos disponíveis.</p></div>';return;}
+
+  // Bloqueia visualização dos jogos até o PIN ser confirmado para este nome
+  if(_nomeVerificado.toLowerCase()!==nome.toLowerCase()){
+    el.innerHTML='<div class="empty"><div class="ei">🔒</div><p>Confirme seu PIN para ver e editar os palpites.<br><span style="font-size:.78rem;color:var(--muted)">Clique fora do campo de nome (ou aperte Tab) para continuar.</span></p></div>';
+    return;
+  }
 
   let h='';
   let temAberto=false;
@@ -1219,6 +1302,13 @@ async function salvarPalpites(){
   let nome=document.getElementById('inp-nome').value.trim();
   if(!nome){toast('Digite seu nome!','e');return;}
 
+  // Segurança: exige que o PIN já tenha sido verificado ao digitar o nome
+  if(_nomeVerificado.toLowerCase()!==nome.toLowerCase()){
+    toast('⚠️ Confirme seu PIN primeiro — clique fora do campo nome.','e');
+    await verificarPinNome();
+    if(_nomeVerificado.toLowerCase()!==nome.toLowerCase())return;
+  }
+
   // Coleta palpites preenchidos
   const novos=[];
   ST.jogos.forEach(j=>{
@@ -1253,6 +1343,7 @@ async function salvarPalpites(){
     ST.palpites.push({nome,jid,g1,g2});
   });
   save();updSt();
+  popularNomesExistentes();
   toast('✅ '+novos.length+' palpite(s) de '+nome+' salvos!');
 }
 window.salvarPalpites=salvarPalpites;
@@ -1271,6 +1362,182 @@ function confirmar(title,msg,okLabel='Confirmar',cancelLabel='Cancelar'){
   });
 }
 function confirmAccept(){document.getElementById('modal-confirm').classList.remove('open');if(_confirmResolve){_confirmResolve(true);_confirmResolve=null;}}
+
+// ════════════════════════════════════════════
+// PIN POR PARTICIPANTE
+// ════════════════════════════════════════════
+let _pinResolve=null;
+let _nomeVerificado=''; // nome já validado com PIN nesta sessão
+
+function pedirPin(nome, modo){
+  // modo: 'criar' (primeira vez) ou 'validar' (já existe)
+  return new Promise(resolve=>{
+    _pinResolve=resolve;
+    const title=document.getElementById('pin-title');
+    const msg=document.getElementById('pin-msg');
+    const err=document.getElementById('pin-error');
+    const inp=document.getElementById('inp-pin');
+    err.style.display='none';
+    inp.value='';
+    if(modo==='criar'){
+      title.textContent='🔒 Crie um PIN para '+nome;
+      msg.textContent='Esse PIN de 4 dígitos vai proteger seus palpites. Guarde bem — você vai precisar dele toda vez que vier editar.';
+    }else{
+      title.textContent='🔒 Digite o PIN de '+nome;
+      msg.textContent='Digite seu PIN de 4 dígitos para confirmar que é você.';
+    }
+    document.getElementById('modal-pin').classList.add('open');
+    setTimeout(()=>inp.focus(),100);
+  });
+}
+
+function pinAccept(){
+  const val=document.getElementById('inp-pin').value.trim();
+  if(val.length!==4||!/^\d{4}$/.test(val)){
+    document.getElementById('pin-error').textContent='⚠️ Digite exatamente 4 números.';
+    document.getElementById('pin-error').style.display='block';
+    return;
+  }
+  document.getElementById('modal-pin').classList.remove('open');
+  if(_pinResolve){_pinResolve(val);_pinResolve=null;}
+}
+
+function pinReject(){
+  document.getElementById('modal-pin').classList.remove('open');
+  if(_pinResolve){_pinResolve(null);_pinResolve=null;}
+}
+
+window.pinAccept=pinAccept;
+window.pinReject=pinReject;
+
+// Reabre o modal já mostrando a mensagem de erro (PIN incorreto)
+async function validarPinComErro(nome){
+  document.getElementById('modal-pin').classList.add('open');
+  document.getElementById('pin-title').textContent='🔒 Digite o PIN de '+nome;
+  document.getElementById('pin-msg').textContent='Digite seu PIN de 4 dígitos para confirmar que é você.';
+  document.getElementById('inp-pin').value='';
+  document.getElementById('pin-error').textContent='⚠️ PIN incorreto. Tente novamente.';
+  document.getElementById('pin-error').style.display='block';
+  setTimeout(()=>document.getElementById('inp-pin').focus(),100);
+  return new Promise(resolve=>{_pinResolve=resolve;});
+}
+
+// Chamada quando o campo nome perde foco / muda — verifica ou cria PIN ANTES de mostrar os jogos
+async function verificarPinNome(){
+  const nome=document.getElementById('inp-nome').value.trim();
+  if(!nome){_nomeVerificado='';renderPalpitar();return;}
+
+  // Já verificado nesta sessão — não pede de novo
+  if(_nomeVerificado.toLowerCase()===nome.toLowerCase()){renderPalpitar();return;}
+
+  if(!ST.pins)ST.pins={};
+  const nomeKey=nome.toLowerCase();
+  const pinExistente=ST.pins[nomeKey];
+
+  if(!pinExistente){
+    // Nome novo no bolão — pede para criar PIN
+    const novoPin=await pedirPin(nome,'criar');
+    if(!novoPin){
+      document.getElementById('inp-nome').value='';
+      _nomeVerificado='';
+      renderPalpitar();
+      return;
+    }
+    ST.pins[nomeKey]=novoPin;
+    save();
+    _nomeVerificado=nome;
+    toast('🔒 PIN criado! Guarde para editar depois.');
+  }else{
+    // Nome já existe — precisa validar PIN
+    let pinDigitado=await pedirPin(nome,'validar');
+    let tentativas=0;
+    while(pinDigitado!==null && pinDigitado!==pinExistente && tentativas<3){
+      tentativas++;
+      pinDigitado=await validarPinComErro(nome);
+    }
+    if(pinDigitado===null){
+      document.getElementById('inp-nome').value='';
+      _nomeVerificado='';
+      renderPalpitar();
+      return;
+    }
+    if(pinDigitado!==pinExistente){
+      toast('❌ PIN incorreto. Tente novamente mais tarde.','e');
+      document.getElementById('inp-nome').value='';
+      _nomeVerificado='';
+      renderPalpitar();
+      return;
+    }
+    _nomeVerificado=nome;
+    toast('✅ Identidade confirmada, '+nome+'!');
+  }
+  renderPalpitar();
+}
+window.verificarPinNome=verificarPinNome;
+
+// Chamado a cada tecla digitada — só limpa a verificação se o nome mudou, sem mostrar jogos
+function onNomeInput(){
+  const nome=document.getElementById('inp-nome').value.trim();
+  if(_nomeVerificado && _nomeVerificado.toLowerCase()!==nome.toLowerCase()){
+    _nomeVerificado=''; // nome mudou, precisa verificar de novo
+  }
+  renderPalpitar(); // vai mostrar a tela de "digite seu nome" ou "confirme seu PIN", nunca os jogos direto
+}
+window.onNomeInput=onNomeInput;
+
+// Popula o dropdown com participantes já existentes
+function popularNomesExistentes(){
+  const sel=document.getElementById('sel-nome-existente');
+  if(!sel)return;
+  const valorAtual=sel.value;
+  const nomes=[...new Set(ST.palpites.map(p=>p.nome))].sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML='<option value="">-- Selecione seu nome --</option>'+
+    nomes.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if(nomes.includes(valorAtual))sel.value=valorAtual;
+}
+window.popularNomesExistentes=popularNomesExistentes;
+
+// Ao escolher do dropdown, já dispara a verificação de PIN direto
+async function selecionarNomeExistente(){
+  const sel=document.getElementById('sel-nome-existente');
+  const nome=sel.value;
+  if(!nome)return;
+  document.getElementById('inp-nome').value=nome;
+  await verificarPinNome();
+  // Se a verificação falhar, limpa a seleção para tentar de novo
+  if(_nomeVerificado.toLowerCase()!==nome.toLowerCase()){
+    sel.value='';
+  }
+}
+window.selecionarNomeExistente=selecionarNomeExistente;
+
+// Mostra o bloco de seleção OU o resumo compacto, dependendo se já está verificado
+function atualizarVisualNome(){
+  const bloco=document.getElementById('nome-selecao-bloco');
+  const resumo=document.getElementById('nome-confirmado-resumo');
+  const nome=document.getElementById('inp-nome').value.trim();
+  if(bloco && resumo){
+    if(nome && _nomeVerificado.toLowerCase()===nome.toLowerCase()){
+      bloco.style.display='none';
+      resumo.style.display='flex';
+      document.getElementById('nome-confirmado-texto').textContent=nome;
+    }else{
+      bloco.style.display='block';
+      resumo.style.display='none';
+    }
+  }
+}
+window.atualizarVisualNome=atualizarVisualNome;
+
+function trocarParticipante(){
+  _nomeVerificado='';
+  document.getElementById('inp-nome').value='';
+  document.getElementById('sel-nome-existente').value='';
+  atualizarVisualNome();
+  renderPalpitar();
+}
+window.trocarParticipante=trocarParticipante;
+
 function confirmReject(){document.getElementById('modal-confirm').classList.remove('open');if(_confirmResolve){_confirmResolve(false);_confirmResolve=null;}}
 window.confirmAccept=confirmAccept;
 window.confirmReject=confirmReject;
@@ -1773,7 +2040,7 @@ function rAdmJ(){
     return true; // todos
   });
   const jogos=todosFiltro;
-  const SELECOES=['A definir','Alemanha','Argentina','Argélia','Arábia Saudita','Austrália','Brasil','Bélgica','Bósnia-Herzegovina','Cabo Verde','Canadá','Colômbia','Congo (RD)','Coreia do Sul','Costa do Marfim','Croácia','Curaçao','Egito','Equador','Escócia','Espanha','Estados Unidos','França','Gana','Haiti','Inglaterra','Iraque','Irã','Japão','Jordânia','Marrocos','México','Nova Zelândia','Noruega','Países Baixos','Panamá','Paraguai','Portugal','Qatar','Reino Unido','República Tcheca','Senegal','Suécia','Suíça','Tunísia','Turquia','Uruguai','Uzbequistão','Áustria'];
+  const SELECOES=['A definir','África do Sul','Alemanha','Argentina','Argélia','Arábia Saudita','Austrália','Brasil','Bélgica','Bósnia-Herzegovina','Cabo Verde','Canadá','Colômbia','Congo (RD)','Coreia do Sul','Costa do Marfim','Croácia','Curaçao','Egito','Equador','Escócia','Espanha','Estados Unidos','França','Gana','Haiti','Inglaterra','Iraque','Irã','Japão','Jordânia','Marrocos','México','Nova Zelândia','Noruega','Países Baixos','Panamá','Paraguai','Portugal','Qatar','República Tcheca','Senegal','Suécia','Suíça','Tunísia','Turquia','Uruguai','Uzbequistão','Áustria'];
   const optsHtml=SELECOES.map(t=>`<option value="${t}">${t}</option>`).join('');
   let h='';
   jogos.sort((a,b)=>new Date(a.dt)-new Date(b.dt)).forEach(j=>{
@@ -1825,13 +2092,15 @@ function rAdmJ(){
   });
   el.innerHTML=h||'<p class="ht">Nenhum jogo.</p>';
 }
-function salvarTimes(id){
+async function salvarTimes(id){
   const j=ST.jogos.find(x=>x.id===id);if(!j)return;
   const t1=document.getElementById('t1-'+id)?.value;
   const t2=document.getElementById('t2-'+id)?.value;
   if(!t1||!t2){toast('Escolha os dois times!','e');return;}
   j.t1=t1;j.t2=t2;
-  save();rAdmJ();renderJogos();renderBracket();
+  j._timesEditadoAgora=Date.now(); // marca para a proteção do fbSave nunca reverter esta troca específica
+  await save(); // espera o salvamento terminar antes de re-renderizar, evita corrida
+  rAdmJ();renderJogos();renderBracket();
   toast('✅ Times atualizados: '+t1+' × '+t2);
 }
 window.salvarTimes=salvarTimes;
@@ -1875,6 +2144,7 @@ function rAdmUsers(){
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap">
         <button class="btn btn-o btn-sm" onclick="verPalpitesUser('${esc(nome)}')">👁 Ver</button>
+        ${ST.pins&&ST.pins[nome.toLowerCase()]?`<button class="btn btn-o btn-sm" onclick="resetarPin('${esc(nome)}')">🔓 Resetar PIN</button>`:''}
         <button class="btn btn-r btn-sm" onclick="apagarUsuario('${esc(nome)}')">🗑 Remover</button>
       </div>
     </div>`;
@@ -1882,6 +2152,20 @@ function rAdmUsers(){
   el.innerHTML=h;
 }
 window.rAdmUsers=rAdmUsers;
+
+function resetarPin(nome){
+  confirmar(
+    'Resetar PIN',
+    'Apagar o PIN de "'+nome+'"? Na próxima vez que essa pessoa digitar o nome, vai poder criar um PIN novo.',
+    '🔓 Sim, resetar','Cancelar'
+  ).then(ok=>{
+    if(!ok)return;
+    if(ST.pins)delete ST.pins[nome.toLowerCase()];
+    save();rAdmUsers();
+    toast('🔓 PIN de '+nome+' resetado.');
+  });
+}
+window.resetarPin=resetarPin;
 
 // pts_ removida: use pts() que é idêntica
 
@@ -1893,6 +2177,7 @@ function apagarUsuario(nome){
   ).then(ok=>{
     if(!ok)return;
     ST.palpites=ST.palpites.filter(p=>p.nome.toLowerCase()!==nome.toLowerCase());
+    if(ST.pins)delete ST.pins[nome.toLowerCase()];
     save();updSt();rAdmUsers();
     toast('🗑 '+nome+' removido.');
   });
@@ -1986,27 +2271,31 @@ function mesclarDuplicados(){
 window.mesclarDuplicados=mesclarDuplicados;
 
 function sincronizarJogos(){
-  if(!confirm('Atualizar datas e dados dos jogos sem apagar palpites ou resultados?'))return;
-  // Para cada jogo no COPA, atualiza dt e city mas preserva res e live do Firebase
+  if(!confirm('Atualizar datas, times e dados dos jogos sem apagar palpites ou resultados?'))return;
+  // Para cada jogo no COPA, atualiza dt, city e times — preserva apenas res e live do Firebase
   COPA.forEach(copaJ=>{
     const j=ST.jogos.find(x=>x.id===copaJ.id);
     if(j){
-      // Atualiza só campos que podem ter mudado, preserva resultado e status
+      // Atualiza datas e local sempre
       j.dt=copaJ.dt;
       j.city=copaJ.city;
       j.fase=copaJ.fase;
       j.gr=copaJ.gr;
-      // Só atualiza times se ainda for "A definir"
-      if(j.t1==='A definir')j.t1=copaJ.t1;
-      if(j.t2==='A definir')j.t2=copaJ.t2;
+      // Atualiza os times SEMPRE que o jogo ainda não tiver placar definido
+      // (times do mata-mata são provisórios até a fase de grupos terminar — não há perigo em sobrescrever)
+      const temPlacar = j.res && j.res.g1!=='' && j.res.g1!=null;
+      if(!temPlacar){
+        j.t1=copaJ.t1;
+        j.t2=copaJ.t2;
+      }
     } else {
       // Jogo novo que não existia — adiciona
       ST.jogos.push({...copaJ,res:{g1:'',g2:''},live:false});
     }
   });
-  ST.jogos.sort((a,b)=>new Date(a.dt)-new Date(b.dt));
+  // NÃO reordena por data — a ordem do array preserva o alinhamento visual do bracket
   save();renderJogos();renderBracket();updSt();rAdmJ();
-  toast('✅ Datas dos jogos sincronizadas!');
+  toast('✅ Datas e times dos jogos sincronizados!');
 }
 window.sincronizarJogos=sincronizarJogos;
 
