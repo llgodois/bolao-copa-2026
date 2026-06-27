@@ -737,7 +737,11 @@ async function fbSave(){
     ST.palpites = [...palpitesDosOutros, ...meusPalpitesLocais];
 
     await dbRef.set(ST);
-  }catch(e){saveLocal();}
+  }catch(e){
+    console.error('Erro ao salvar no Firebase:', e);
+    toast('⚠️ Erro ao salvar: '+e.message,'e');
+    saveLocal();
+  }
 }
 function loadLocal(){
   try{const s=localStorage.getItem('bolao26v4');if(s){const l=JSON.parse(s);ST={...ST,...l};}}catch(e){}
@@ -1431,7 +1435,7 @@ async function verificarPinNome(){
   if(_nomeVerificado.toLowerCase()===nome.toLowerCase()){renderPalpitar();return;}
 
   if(!ST.pins)ST.pins={};
-  const nomeKey=normNome(nome);
+  const nomeKey=chavePin(nome);
   const pinExistente=ST.pins[nomeKey];
 
   if(!pinExistente){
@@ -1444,7 +1448,7 @@ async function verificarPinNome(){
       return;
     }
     ST.pins[nomeKey]=novoPin;
-    save();
+    await save(); // espera o salvamento terminar de verdade antes de continuar
     _nomeVerificado=nome;
     toast('🔒 PIN criado! Guarde para editar depois.');
   }else{
@@ -2004,6 +2008,8 @@ window.filtroAdmin=filtroAdmin;
 const PARTICIPANTES_FIXOS=['Adriano Marreta','Ângela','Astrobaldo','Claude','Felipe Ribeiro','Gustavo Ferreira','Juliana Bandeira','Júnior Meneses / Gelado','llgodois','Marcos Ernesto','Matheus Godois','Raquel B','Vini','Yago Ponkan','Yan /+/'];
 
 function normNome(s){return (s||'').trim().toLowerCase();}
+// Firebase não aceita . # $ [ ] / em chaves de objeto — sanitiza para uso como chave de ST.pins
+function chavePin(s){return normNome(s).replace(/[.#$\[\]\/]/g,'_');}
 
 function contarPalpitantes(jid){
   const quemPalpitou=new Set(ST.palpites.filter(p=>p.jid===jid).map(p=>normNome(p.nome)));
@@ -2144,7 +2150,7 @@ function rAdmUsers(){
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap">
         <button class="btn btn-o btn-sm" onclick="verPalpitesUser('${esc(nome)}')">👁 Ver</button>
-        ${ST.pins&&ST.pins[normNome(nome)]?`<button class="btn btn-o btn-sm" onclick="resetarPin('${esc(nome)}')">🔓 Resetar PIN</button>`:''}
+        ${ST.pins&&ST.pins[chavePin(nome)]?`<button class="btn btn-o btn-sm" onclick="resetarPin('${esc(nome)}')">🔓 Resetar PIN</button>`:''}
         <button class="btn btn-r btn-sm" onclick="apagarUsuario('${esc(nome)}')">🗑 Remover</button>
       </div>
     </div>`;
@@ -2160,7 +2166,7 @@ function resetarPin(nome){
     '🔓 Sim, resetar','Cancelar'
   ).then(ok=>{
     if(!ok)return;
-    if(ST.pins)delete ST.pins[normNome(nome)];
+    if(ST.pins)delete ST.pins[chavePin(nome)];
     save();rAdmUsers();
     toast('🔓 PIN de '+nome+' resetado.');
   });
@@ -2177,7 +2183,7 @@ function apagarUsuario(nome){
   ).then(ok=>{
     if(!ok)return;
     ST.palpites=ST.palpites.filter(p=>p.nome.toLowerCase()!==nome.toLowerCase());
-    if(ST.pins)delete ST.pins[normNome(nome)];
+    if(ST.pins)delete ST.pins[chavePin(nome)];
     save();updSt();rAdmUsers();
     toast('🗑 '+nome+' removido.');
   });
