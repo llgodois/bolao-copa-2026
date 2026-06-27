@@ -1431,7 +1431,7 @@ async function verificarPinNome(){
   if(_nomeVerificado.toLowerCase()===nome.toLowerCase()){renderPalpitar();return;}
 
   if(!ST.pins)ST.pins={};
-  const nomeKey=nome.toLowerCase();
+  const nomeKey=normNome(nome);
   const pinExistente=ST.pins[nomeKey];
 
   if(!pinExistente){
@@ -2144,7 +2144,7 @@ function rAdmUsers(){
       </div>
       <div style="display:flex;gap:.4rem;flex-wrap:wrap">
         <button class="btn btn-o btn-sm" onclick="verPalpitesUser('${esc(nome)}')">👁 Ver</button>
-        ${ST.pins&&ST.pins[nome.toLowerCase()]?`<button class="btn btn-o btn-sm" onclick="resetarPin('${esc(nome)}')">🔓 Resetar PIN</button>`:''}
+        ${ST.pins&&ST.pins[normNome(nome)]?`<button class="btn btn-o btn-sm" onclick="resetarPin('${esc(nome)}')">🔓 Resetar PIN</button>`:''}
         <button class="btn btn-r btn-sm" onclick="apagarUsuario('${esc(nome)}')">🗑 Remover</button>
       </div>
     </div>`;
@@ -2160,7 +2160,7 @@ function resetarPin(nome){
     '🔓 Sim, resetar','Cancelar'
   ).then(ok=>{
     if(!ok)return;
-    if(ST.pins)delete ST.pins[nome.toLowerCase()];
+    if(ST.pins)delete ST.pins[normNome(nome)];
     save();rAdmUsers();
     toast('🔓 PIN de '+nome+' resetado.');
   });
@@ -2177,7 +2177,7 @@ function apagarUsuario(nome){
   ).then(ok=>{
     if(!ok)return;
     ST.palpites=ST.palpites.filter(p=>p.nome.toLowerCase()!==nome.toLowerCase());
-    if(ST.pins)delete ST.pins[nome.toLowerCase()];
+    if(ST.pins)delete ST.pins[normNome(nome)];
     save();updSt();rAdmUsers();
     toast('🗑 '+nome+' removido.');
   });
