@@ -250,7 +250,7 @@ select option{background:#1a2235;}
     <div style="margin-bottom:1rem">
     <div style="font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem">Filtrar por grupo</div>
     <div style="display:flex;flex-wrap:wrap;gap:.4rem" id="filtro-grupos">
-      <button class="btn btn-y btn-sm" onclick="filtrarGrupo('todos')" id="fg-todos">Todos</button>
+      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('todos')" id="fg-todos">Todos</button>
       <button class="btn btn-o btn-sm" onclick="filtrarGrupo('andamento')" id="fg-andamento">🔴 Ao vivo</button>
       <button class="btn btn-o btn-sm" onclick="filtrarGrupo('hoje')" id="fg-hoje">📅 Hoje</button>
       <button class="btn btn-o btn-sm" onclick="filtrarGrupo('A')" id="fg-A">A</button>
@@ -265,7 +265,7 @@ select option{background:#1a2235;}
       <button class="btn btn-o btn-sm" onclick="filtrarGrupo('J')" id="fg-J">J</button>
       <button class="btn btn-o btn-sm" onclick="filtrarGrupo('K')" id="fg-K">K</button>
       <button class="btn btn-o btn-sm" onclick="filtrarGrupo('L')" id="fg-L">L</button>
-      <button class="btn btn-o btn-sm" onclick="filtrarGrupo('mata')" id="fg-mata">🏆 Mata-mata</button>
+      <button class="btn btn-y btn-sm" onclick="filtrarGrupo('mata')" id="fg-mata">🏆 Mata-mata</button>
     </div>
   </div>
   <div id="grupos-grid" class="grupos-grid"></div>
@@ -307,8 +307,7 @@ select option{background:#1a2235;}
       </div>
     </div>
     <div style="display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap">
-      <button class="btn btn-y btn-sm" id="view-grupo" onclick="setViewPalpitar('grupo')">📅 Por grupo</button>
-      <button class="btn btn-o btn-sm" id="view-dia" onclick="setViewPalpitar('dia')">🗓️ Por dia</button>
+      <button class="btn btn-y btn-sm" id="view-dia" onclick="setViewPalpitar('dia')">🗓️ Por dia</button>
       <button class="btn btn-o btn-sm" id="view-enc" onclick="setViewPalpitar('enc')">✅ Encerrados</button>
     </div>
     <p class="ht" style="margin-bottom:1rem">⏰ Palpites só são aceitos <strong>antes do jogo começar</strong>. Jogos em andamento ou encerrados aparecem bloqueados.</p>
@@ -830,7 +829,7 @@ function pts(p1,p2,r1,r2){
   return pv===rv?1:0;
 }
 
-let _filtroAtivo='todos';
+let _filtroAtivo='mata';
 
 function filtrarGrupo(f){
   _filtroAtivo=f;
@@ -1045,10 +1044,9 @@ function renderBracket(){
 // ════════════════════════════════════════════
 // PALPITAR
 // ════════════════════════════════════════════
-let _viewPalpitar='grupo';
+let _viewPalpitar='dia';
 function setViewPalpitar(v){
   _viewPalpitar=v;
-  document.getElementById('view-grupo').className='btn btn-'+(v==='grupo'?'y':'o')+' btn-sm';
   document.getElementById('view-dia').className='btn btn-'+(v==='dia'?'y':'o')+' btn-sm';
   document.getElementById('view-enc').className='btn btn-'+(v==='enc'?'y':'o')+' btn-sm';
   renderPalpitar();
