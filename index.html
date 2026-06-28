@@ -563,21 +563,21 @@ const COPA = [
   {id:'l6',t1:'Croácia',t2:'Gana',dt:'2026-06-27T18:00',fase:'Grupos',gr:'L',city:'Philadelphia'},
   // RODADA DE 32
   {id:'r01',t1:'África do Sul',t2:'Canadá',dt:'2026-06-28T16:00',fase:'R32',gr:'',city:'Los Angeles'},
-  {id:'r02',t1:'Alemanha',t2:'3º A/B/C/D/F',dt:'2026-06-29T17:30',fase:'R32',gr:'',city:'Boston'},
-  {id:'r03',t1:'1º Grupo F',t2:'Marrocos',dt:'2026-06-29T22:00',fase:'R32',gr:'',city:'Monterrey'},
-  {id:'r04',t1:'Brasil',t2:'2º Grupo F',dt:'2026-06-29T14:00',fase:'R32',gr:'',city:'Houston'},
-  {id:'r05',t1:'1º Grupo I',t2:'3º C/D/F/G/H',dt:'2026-06-30T18:00',fase:'R32',gr:'',city:'Nova York/NJ'},
-  {id:'r06',t1:'2º Grupo E',t2:'2º Grupo I',dt:'2026-06-30T14:00',fase:'R32',gr:'',city:'Dallas'},
-  {id:'r07',t1:'México',t2:'3º C/E/F/H/I',dt:'2026-06-30T22:00',fase:'R32',gr:'',city:'Cidade do México'},
-  {id:'r08',t1:'1º Grupo L',t2:'3º E/H/I/J/K',dt:'2026-07-01T13:00',fase:'R32',gr:'',city:'Atlanta'},
-  {id:'r09',t1:'Estados Unidos',t2:'3º B/E/F/I/J',dt:'2026-07-01T21:00',fase:'R32',gr:'',city:'San Francisco'},
-  {id:'r10',t1:'1º Grupo G',t2:'3º A/E/H/I/J',dt:'2026-07-01T17:00',fase:'R32',gr:'',city:'Seattle'},
-  {id:'r11',t1:'2º Grupo K',t2:'2º Grupo L',dt:'2026-07-02T20:00',fase:'R32',gr:'',city:'Vancouver'},
-  {id:'r12',t1:'1º Grupo H',t2:'2º Grupo J',dt:'2026-07-02T16:00',fase:'R32',gr:'',city:'Los Angeles'},
-  {id:'r13',t1:'Suíça',t2:'3º E/F/G/I/J',dt:'2026-07-03T00:00',fase:'R32',gr:'',city:'Toronto'},
-  {id:'r14',t1:'Argentina',t2:'2º Grupo H',dt:'2026-07-03T19:00',fase:'R32',gr:'',city:'Atlanta'},
-  {id:'r15',t1:'1º Grupo K',t2:'3º D/E/I/J/L',dt:'2026-07-03T22:30',fase:'R32',gr:'',city:'Dallas'},
-  {id:'r16',t1:'2º Grupo D',t2:'2º Grupo G',dt:'2026-07-03T15:00',fase:'R32',gr:'',city:'Kansas City'},
+  {id:'r02',t1:'Alemanha',t2:'Paraguai',dt:'2026-06-29T17:30',fase:'R32',gr:'',city:'Boston'},
+  {id:'r03',t1:'Países Baixos',t2:'Marrocos',dt:'2026-06-29T22:00',fase:'R32',gr:'',city:'Monterrey'},
+  {id:'r04',t1:'Brasil',t2:'Japão',dt:'2026-06-29T14:00',fase:'R32',gr:'',city:'Houston'},
+  {id:'r05',t1:'França',t2:'Suécia',dt:'2026-06-30T18:00',fase:'R32',gr:'',city:'Nova York/NJ'},
+  {id:'r06',t1:'Costa do Marfim',t2:'Noruega',dt:'2026-06-30T14:00',fase:'R32',gr:'',city:'Dallas'},
+  {id:'r07',t1:'México',t2:'Equador',dt:'2026-06-30T22:00',fase:'R32',gr:'',city:'Cidade do México'},
+  {id:'r08',t1:'Inglaterra',t2:'Congo (RD)',dt:'2026-07-01T13:00',fase:'R32',gr:'',city:'Atlanta'},
+  {id:'r09',t1:'Estados Unidos',t2:'Bósnia-Herzegovina',dt:'2026-07-01T21:00',fase:'R32',gr:'',city:'San Francisco'},
+  {id:'r10',t1:'Bélgica',t2:'Senegal',dt:'2026-07-01T17:00',fase:'R32',gr:'',city:'Seattle'},
+  {id:'r11',t1:'Portugal',t2:'Croácia',dt:'2026-07-02T20:00',fase:'R32',gr:'',city:'Vancouver'},
+  {id:'r12',t1:'Espanha',t2:'Áustria',dt:'2026-07-02T16:00',fase:'R32',gr:'',city:'Los Angeles'},
+  {id:'r13',t1:'Suíça',t2:'Argélia',dt:'2026-07-03T00:00',fase:'R32',gr:'',city:'Toronto'},
+  {id:'r14',t1:'Argentina',t2:'Cabo Verde',dt:'2026-07-03T19:00',fase:'R32',gr:'',city:'Atlanta'},
+  {id:'r15',t1:'Colômbia',t2:'Gana',dt:'2026-07-03T22:30',fase:'R32',gr:'',city:'Dallas'},
+  {id:'r16',t1:'Austrália',t2:'Egito',dt:'2026-07-03T15:00',fase:'R32',gr:'',city:'Kansas City'},
   // OITAVAS DE FINAL
   {id:'o1',t1:'Vencedor R32 2',t2:'Vencedor R32 5',dt:'2026-07-04T18:00',fase:'Oitavas',gr:'',city:'Houston'},
   {id:'o2',t1:'Vencedor R32 1',t2:'Vencedor R32 3',dt:'2026-07-04T14:00',fase:'Oitavas',gr:'',city:'Philadelphia'},
@@ -588,13 +588,15 @@ const COPA = [
   {id:'o7',t1:'Vencedor R32 14',t2:'Vencedor R32 16',dt:'2026-07-07T13:00',fase:'Oitavas',gr:'',city:'Atlanta'},
   {id:'o8',t1:'Vencedor R32 13',t2:'Vencedor R32 15',dt:'2026-07-07T17:00',fase:'Oitavas',gr:'',city:'Vancouver'},
   // QUARTAS DE FINAL
+  // ATENÇÃO: confronto real confirmado na ESPN — Quartas 2 (10/07) é o lado de Oitavas 5/6 (Portugal-Espanha),
+  // e Quartas 3 (11/07) é o lado do Brasil (Oitavas 3/4). Não inverter — já foi corrigido um bug que trocava isso.
   {id:'q1',t1:'Vencedor Oitavas 2',t2:'Vencedor Oitavas 1',dt:'2026-07-09T17:00',fase:'Quartas',gr:'',city:'Boston'},
-  {id:'q2',t1:'Vencedor Oitavas 4',t2:'Vencedor Oitavas 3',dt:'2026-07-10T16:00',fase:'Quartas',gr:'',city:'Los Angeles'},
-  {id:'q3',t1:'Vencedor Oitavas 6',t2:'Vencedor Oitavas 5',dt:'2026-07-11T18:00',fase:'Quartas',gr:'',city:'Miami'},
+  {id:'q2',t1:'Vencedor Oitavas 6',t2:'Vencedor Oitavas 5',dt:'2026-07-10T16:00',fase:'Quartas',gr:'',city:'Los Angeles'},
+  {id:'q3',t1:'Vencedor Oitavas 4',t2:'Vencedor Oitavas 3',dt:'2026-07-11T18:00',fase:'Quartas',gr:'',city:'Miami'},
   {id:'q4',t1:'Vencedor Oitavas 8',t2:'Vencedor Oitavas 7',dt:'2026-07-11T22:00',fase:'Quartas',gr:'',city:'Kansas City'},
   // SEMIFINAIS
   {id:'s1',t1:'Vencedor Quartas 2',t2:'Vencedor Quartas 1',dt:'2026-07-14T16:00',fase:'Semifinal',gr:'',city:'Dallas'},
-  {id:'s2',t1:'Vencedor Quartas 4',t2:'Vencedor Quartas 3',dt:'2026-07-15T16:00',fase:'Semifinal',gr:'',city:'Dallas'},
+  {id:'s2',t1:'Vencedor Quartas 4',t2:'Vencedor Quartas 3',dt:'2026-07-15T16:00',fase:'Semifinal',gr:'',city:'Atlanta'},
   // 3º LUGAR
   {id:'t1',t1:'Perdedor Semifinal 2',t2:'Perdedor Semifinal 1',dt:'2026-07-18T18:00',fase:'3º Lugar',gr:'',city:'Miami'},
   // GRANDE FINAL
@@ -660,6 +662,7 @@ async function initFirebase(){
       ST.palpites = [];
     }
     clearTimeout(safetyTimer);
+    avancarTodasFases();
     updSt();renderJogos();renderBracket();
     if(document.getElementById('pg-palpitar').classList.contains('on'))renderPalpitar();
     setSS('ok','Firebase 🔥');
@@ -697,9 +700,13 @@ async function fbSave(){
       atual.jogos.forEach(fbJ => {
         const meuJ = ST.jogos.find(j => j.id === fbJ.id);
         if(!meuJ)return;
+        // Se EU editei o resultado/status deste jogo há poucos segundos (inclusive para apagar/voltar
+        // pra "Aguardando"), NUNCA herda o placar antigo do Firebase — protege minha edição atual,
+        // mesmo que ela esteja "esvaziando" um resultado que já existia.
+        const resEditadoAgora = meuJ._resEditadoAgora && (Date.now()-meuJ._resEditadoAgora < 10000);
         // Não sobrescreve resultado já definido, A MENOS que eu mesmo esteja alterando este jogo agora
         // (ST já reflete minha alteração local, então só herda do Firebase o que EU não mudei)
-        if(fbJ.res && fbJ.res.g1 !== '' && (meuJ.res?.g1==='' || meuJ.res?.g1==null)){
+        if(!resEditadoAgora && fbJ.res && fbJ.res.g1 !== '' && (meuJ.res?.g1==='' || meuJ.res?.g1==null)){
           meuJ.res = fbJ.res;
           meuJ.live = fbJ.live;
         }
@@ -746,6 +753,7 @@ async function fbSave(){
 function loadLocal(){
   try{const s=localStorage.getItem('bolao26v4');if(s){const l=JSON.parse(s);ST={...ST,...l};}}catch(e){}
   if(!ST.jogos||ST.jogos.length===0){ST.jogos=COPA.map(j=>({...j,res:{g1:'',g2:''},live:false}));saveLocal();}
+  avancarTodasFases();
   updSt();renderJogos();renderBracket();
 }
 function saveLocal(){try{localStorage.setItem('bolao26v4',JSON.stringify(ST));}catch(e){}}
@@ -993,12 +1001,19 @@ function renderBracket(){
   // necessária para a fórmula de "Vencedor R32 N". Para a EXIBIÇÃO visual, reordenamos
   // seguindo a ordem real da ESPN na tela (que agrupa os jogos que se enfrentam nas Oitavas).
   const ordemVisualR32=['r02','r05','r01','r03','r11','r12','r09','r10','r04','r06','r07','r08','r14','r16','r13','r15'];
+  // Mesma lógica para as fases seguintes: cada par consecutivo da coluna anterior alimenta
+  // o confronto correspondente aqui, então a ordem abaixo respeita os pares de ordemVisualR32
+  // (r02+r05→o1, r01+r03→o2, r11+r12→o5, r09+r10→o6, r04+r06→o3, r07+r08→o4, r14+r16→o7, r13+r15→o8).
+  // Isso garante que cada card fique alinhado verticalmente em frente aos 2 jogos que o alimentam.
+  const ordemVisualOitavas=['o1','o2','o5','o6','o3','o4','o7','o8'];
+  const ordemVisualQuartas=['q1','q2','q3','q4'];
+  const ordemVisualSemi=['s1','s2'];
   const todosJogos=ST.jogos;
   const r32 = ordemVisualR32.map(id=>todosJogos.find(j=>j.id===id)).filter(Boolean);
 
-  const oitavas=ST.jogos.filter(j=>j.fase==='Oitavas');
-  const quartas=ST.jogos.filter(j=>j.fase==='Quartas');
-  const semi=ST.jogos.filter(j=>j.fase==='Semifinal');
+  const oitavas=ordemVisualOitavas.map(id=>todosJogos.find(j=>j.id===id)).filter(Boolean);
+  const quartas=ordemVisualQuartas.map(id=>todosJogos.find(j=>j.id===id)).filter(Boolean);
+  const semi=ordemVisualSemi.map(id=>todosJogos.find(j=>j.id===id)).filter(Boolean);
   const final=ST.jogos.filter(j=>j.fase==='Final');
   const terceiroLugar=ST.jogos.filter(j=>j.fase==='3º Lugar');
 
@@ -2113,6 +2128,7 @@ window.salvarTimes=salvarTimes;
 
 function salvarRes(id){
   const j=ST.jogos.find(x=>x.id===id);if(!j)return;
+  const oldG1=j.res?.g1, oldG2=j.res?.g2; // resultado ANTES desta edição, usado para desfazer avanço se for o caso
   const g1=document.getElementById('rr-'+id+'-1').value;
   const g2=document.getElementById('rr-'+id+'-2').value;
   const st=document.getElementById('st-'+id)?.value||'aberto';
@@ -2122,12 +2138,133 @@ function salvarRes(id){
   if(st==='fim'&&(g1===''||g2==='')){toast('⚠️ Insira o placar para concluir!','e');return;}
   // Se concluído, garante que live=false
   if(st==='fim') j.live=false;
-  // Se aberto, limpa resultado
-  if(st==='aberto'){j.res={g1:'',g2:''};j.live=false;}
+  // Se aberto, limpa resultado — e, se esse jogo já tinha um resultado antes (ex: teste/engano),
+  // desfaz o avanço automático que esse resultado tinha gerado na fase seguinte
+  if(st==='aberto'){
+    j.res={g1:'',g2:''};j.live=false;
+    desfazerAvanco(j,oldG1,oldG2);
+  }
+  // Marca que EU editei o resultado/status deste jogo agora — protege contra o fbSave
+  // restaurar um placar antigo do Firebase quando a intenção é justamente apagá-lo/voltar para Aguardando
+  j._resEditadoAgora=Date.now();
+  // Se o jogo é do mata-mata e foi concluído agora, avança o vencedor (e perdedor, se semifinal) de fase automaticamente
+  if(st==='fim'&&j.fase!=='Grupos') avancarVencedor(id);
   save();renderJogos();renderBracket();updSt();rAdmJ();
   toast('✅ '+j.t1+' '+g1+'×'+g2+' '+j.t2+' — '+(st==='live'?'AO VIVO':st==='fim'?'Concluído':'Aguardando'));
 }
 window.salvarRes=salvarRes;
+// Desfaz o avanço automático de fase: usado quando um jogo do mata-mata que já tinha resultado
+// volta para "Aguardando" (ex: resultado lançado por engano). Só reverte o(s) jogo(s) de destino
+// se eles AINDA não tiverem começado (sem placar e não "ao vivo"), pra nunca apagar dado real.
+function desfazerAvanco(j,oldG1,oldG2){
+  if(!j||j.fase==='Grupos')return;
+  if(oldG1===''||oldG1==null||oldG2===''||oldG2==null)return; // não tinha resultado antes, nada a desfazer
+  const g1=parseInt(oldG1),g2=parseInt(oldG2);
+  let vencedor,perdedor;
+  if(g1>g2){vencedor=j.t1;perdedor=j.t2;}
+  else if(g2>g1){vencedor=j.t2;perdedor=j.t1;}
+  else return; // empate (pênaltis) — não há como saber com certeza quem avançou, não desfaz automaticamente
+  const info=faseENumDoId(j.id);
+  if(!info)return;
+  const rotV=rotuloVencedor(info.fase,info.n);
+  const rotP=rotuloPerdedor(info.fase,info.n);
+  let desfez=false;
+  ST.jogos.forEach(alvo=>{
+    if(alvo.id===j.id)return;
+    const destinoIntacto=(!alvo.res||alvo.res.g1===''||alvo.res.g1==null)&&!alvo.live;
+    if(!destinoIntacto)return; // jogo de destino já começou/tem placar — não toca, evita apagar dado real
+    if(rotV){
+      if(alvo.t1===vencedor){alvo.t1=rotV;desfez=true;}
+      if(alvo.t2===vencedor){alvo.t2=rotV;desfez=true;}
+    }
+    if(rotP){
+      if(alvo.t1===perdedor){alvo.t1=rotP;desfez=true;}
+      if(alvo.t2===perdedor){alvo.t2=rotP;desfez=true;}
+    }
+  });
+  if(desfez)toast('↩️ Avanço de fase desfeito — jogo voltou para "'+rotV+'"');
+}
+window.desfazerAvanco=desfazerAvanco;
+
+// ════════════════════════════════════════════
+// AVANÇO AUTOMÁTICO DE FASE NO MATA-MATA
+// ════════════════════════════════════════════
+// Cada jogo do mata-mata (r01-r16, o1-o8, q1-q4, s1-s2) tem um número de posição
+// dentro da sua fase (extraído do próprio id). Os jogos da fase seguinte referenciam
+// esse número através do rótulo "Vencedor <Fase> N" (e "Perdedor Semifinal N" para a final/3º lugar).
+// Quando um jogo é marcado como Concluído, procuramos esses rótulos em TODOS os jogos
+// e substituímos pelo nome real do time que avançou (ou foi eliminado).
+function faseENumDoId(id){
+  let m;
+  if((m=/^r(\d+)$/.exec(id))) return {fase:'R32',n:parseInt(m[1],10)};
+  if((m=/^o(\d+)$/.exec(id))) return {fase:'Oitavas',n:parseInt(m[1],10)};
+  if((m=/^q(\d+)$/.exec(id))) return {fase:'Quartas',n:parseInt(m[1],10)};
+  if((m=/^s(\d+)$/.exec(id))) return {fase:'Semifinal',n:parseInt(m[1],10)};
+  return null;
+}
+function rotuloVencedor(fase,n){
+  const map={R32:'Vencedor R32',Oitavas:'Vencedor Oitavas',Quartas:'Vencedor Quartas',Semifinal:'Vencedor Semifinal'};
+  return map[fase]?(map[fase]+' '+n):null;
+}
+function rotuloPerdedor(fase,n){
+  if(fase!=='Semifinal')return null;
+  return 'Perdedor Semifinal '+n;
+}
+// Avança o vencedor (e perdedor, se for semifinal) do jogo `jogoId` para os jogos
+// da fase seguinte que ainda exibem o rótulo técnico ("Vencedor X N").
+function avancarVencedor(jogoId){
+  const j=ST.jogos.find(x=>x.id===jogoId);
+  if(!j||j.fase==='Grupos')return;
+  if(!j.res||j.res.g1===''||j.res.g1==null||j.res.g2===''||j.res.g2==null)return;
+  const g1=parseInt(j.res.g1),g2=parseInt(j.res.g2);
+  let vencedor,perdedor;
+  if(g1>g2){vencedor=j.t1;perdedor=j.t2;}
+  else if(g2>g1){vencedor=j.t2;perdedor=j.t1;}
+  else{
+    // Empate no mata-mata só pode ir para os pênaltis — pergunta ao Admin quem venceu
+    const r=prompt('Empate em '+j.t1+' '+g1+'×'+g2+' '+j.t2+'.\nQuem venceu nos pênaltis?\n\nDigite 1 para '+j.t1+'\nDigite 2 para '+j.t2,'1');
+    if(r===null)return; // Admin cancelou — não avança ninguém ainda
+    if(r.trim()==='2'){vencedor=j.t2;perdedor=j.t1;}
+    else{vencedor=j.t1;perdedor=j.t2;}
+  }
+  const info=faseENumDoId(j.id);
+  if(!info)return;
+  const rotV=rotuloVencedor(info.fase,info.n);
+  const rotP=rotuloPerdedor(info.fase,info.n);
+  let mudou=false;
+  ST.jogos.forEach(alvo=>{
+    if(alvo.id===j.id)return;
+    if(rotV){
+      if(alvo.t1===rotV){alvo.t1=vencedor;mudou=true;}
+      if(alvo.t2===rotV){alvo.t2=vencedor;mudou=true;}
+    }
+    if(rotP){
+      if(alvo.t1===rotP){alvo.t1=perdedor;mudou=true;}
+      if(alvo.t2===rotP){alvo.t2=perdedor;mudou=true;}
+    }
+  });
+  if(mudou)toast('➡️ '+vencedor+' avançou de fase automaticamente!');
+}
+window.avancarVencedor=avancarVencedor;
+// Roda avancarVencedor() para TODOS os jogos do mata-mata já concluídos, na ordem das fases
+// (R32 → Oitavas → Quartas → Semifinal). Útil para recalcular tudo de uma vez (ex: após Sincronizar).
+function avancarTodasFases(){
+  const ordem=['R32','Oitavas','Quartas','Semifinal'];
+  ordem.forEach(fase=>{
+    ST.jogos.filter(j=>j.fase===fase && j.res && j.res.g1!=='' && j.res.g1!=null && j.res.g2!=='' && j.res.g2!=null)
+      .sort((a,b)=>(faseENumDoId(a.id)?.n||0)-(faseENumDoId(b.id)?.n||0))
+      .forEach(j=>avancarVencedorSemPerguntar(j.id));
+  });
+}
+window.avancarTodasFases=avancarTodasFases;
+// Versão "silenciosa" usada no recálculo em lote: em caso de empate sem pênaltis registrados,
+// não interrompe o lote com prompt — apenas pula esse jogo (o Admin resolve manualmente ao salvar o placar dele).
+function avancarVencedorSemPerguntar(jogoId){
+  const j=ST.jogos.find(x=>x.id===jogoId);
+  if(!j||!j.res||j.res.g1===j.res.g2)return; // empate sem decisão registrada: pula, evita prompt em lote
+  avancarVencedor(jogoId);
+}
+
 function rAdmUsers(){
   const el=document.getElementById('adm-users');
   const nomes=[...new Set(ST.palpites.map(p=>p.nome))].sort();
@@ -2300,6 +2437,7 @@ function sincronizarJogos(){
     }
   });
   // NÃO reordena por data — a ordem do array preserva o alinhamento visual do bracket
+  avancarTodasFases();
   save();renderJogos();renderBracket();updSt();rAdmJ();
   toast('✅ Datas e times dos jogos sincronizados!');
 }
